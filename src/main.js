@@ -150,7 +150,7 @@ function paintPalette(th) {
   root.style.setProperty('--accent', p.accent);
   root.style.setProperty('--tint', p.tint);
   root.style.setProperty('--primary-soft', `color-mix(in srgb, ${p.primary} 38%, transparent)`);
-  root.dataset.theme = th ? th.id : 'plain';
+  root.dataset.tema = th ? th.id : 'plain';
   const meta = document.querySelector('meta[name="theme-color"]');
   if (meta) meta.setAttribute('content', th ? th.palette.preview : '#1a4fb8');
 }

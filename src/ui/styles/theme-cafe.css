@@ -1,6 +1,6 @@
 /* Kafe teması: yükselen buhar animasyonu, ahşap zemin */
-:root[data-theme="cafe"] .ambient::before,
-:root[data-theme="cafe"] .ambient::after {
+:root[data-tema="cafe"] .ambient::before,
+:root[data-tema="cafe"] .ambient::after {
   content: "";
   position: absolute;
   bottom: -20%;
@@ -11,8 +11,8 @@
   filter: blur(14px);
   animation: steam 9s ease-in infinite;
 }
-:root[data-theme="cafe"] .ambient::before { left: 30%; }
-:root[data-theme="cafe"] .ambient::after { left: 52%; animation-delay: 3.5s; }
+:root[data-tema="cafe"] .ambient::before { left: 30%; }
+:root[data-tema="cafe"] .ambient::after { left: 52%; animation-delay: 3.5s; }
 @keyframes steam { 0% { transform: translateY(0) scaleX(0.8); opacity: 0; } 25% { opacity: 1; } 100% { transform: translateY(-120%) scaleX(1.4); opacity: 0; } }
-:root[data-theme="cafe"] .scene-grid { background: repeating-linear-gradient(90deg, color-mix(in srgb, var(--primary) 12%, var(--surface)) 0 3rem, color-mix(in srgb, var(--primary) 7%, var(--surface)) 3rem 6rem); }
-:root[data-theme="cafe"] .scene-row { background: color-mix(in srgb, var(--primary) 9%, var(--surface)); }
+:root[data-tema="cafe"] .scene-grid { background: repeating-linear-gradient(90deg, color-mix(in srgb, var(--primary) 12%, var(--surface)) 0 3rem, color-mix(in srgb, var(--primary) 7%, var(--surface)) 3rem 6rem); }
+:root[data-tema="cafe"] .scene-row { background: color-mix(in srgb, var(--primary) 9%, var(--surface)); }
