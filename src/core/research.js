@@ -81,7 +81,7 @@ function avgPerDay(sessions, from, to) {
   return minutesInRange(sessions, from, to) / days;
 }
 
-/** Jüri raporu için özet sayılar. */
+/** Araştırma raporu için özet sayılar. */
 export function buildReport(state, now = Date.now()) {
   const today = dayKey(now);
   const sessions = state.sessions;

@@ -1,4 +1,4 @@
-# Jüri Sunumu İçin Özet — Pomodoro Oyun
+# Proje Özeti — Pomodoro Oyun
 
 ## 1. Problem
 Lise öğrencileri ders çalışmaya **başlamakta** ve **odağını korumakta** zorlanıyor. Pomodoro tekniği (25 dk odak, 5 dk mola) bilinen ve işe yarayan bir yöntem; ancak sıkıcı bulunduğu için çoğu öğrenci birkaç günde bırakıyor.
@@ -8,7 +8,8 @@ Lise öğrencileri ders çalışmaya **başlamakta** ve **odağını korumakta**
 
 Uygulama sunucusuzdur: her şey tarayıcıda çalışır, veri sadece cihazda durur, telefona kurulur ve internet olmadan çalışır (PWA).
 
-## 3. Yenilikçi yanları
+## 3. Farkı ne? (Topluma faydası)
+Kâr amacı gütmeyen, reklamsız ve ücretsiz bir araç. Öğrenciler için güvenli olması amacıyla veri toplamaz, hesap açtırmaz, her şey kendi cihazında kalır; böylece internet ya da pahalı cihazı olmayan herkes de kullanabilir. Yenilikçi yanları:
 - **Tek motor, çok tema:** Öğrencinin ilgisine göre oyun kılığı seçilir; çalışma mekaniği aynı kalır.
 - **Çabaya bağlı ödül, sağlıklı sınırlar:** Günlük para tavanı (8 Pomodoro), uyku hatırlatması, uzun mola önerisi, yarım kalan oturumda **hiçbir şey kaybedilmez**. Şans kutusu, liderlik tablosu, reklam, gerçek para yok; "dönmezsen…" türü baskı yok.
 - **Dürüst sayaç:** Sekme gizli kalırsa, saat oynanırsa ya da iki sekmede sayaç açılırsa oturum para vermez; dil nötr ve suçlayıcı değil.
@@ -45,7 +46,7 @@ Uygulama içinde, **kişisel veri toplamadan** (ad, e-posta, konum yok; her şey
 4. **Öznel gösterge:** Anket farkı = 2. hafta − başlangıç (her soru için −4…+4; pozitif = iyileşme).
 5. **Birleştirme:** Tüm katılımcıların CSV'leri birleştirilir; `katilimci_kodu`, `mod`, `tur` sütunlarıyla Excel/SPSS'te karşılaştırılır (ör. eşleştirilmiş t-testi ya da Wilcoxon).
 
-**Sınırlılıklar (jüriye açıkça söylenmeli):** Küçük örneklem; 3 günlük kontrol dönemi kısa; kontrol ve oyunlu dönemin sırası sabit (sıra etkisi) — gelecek çalışmada dönemler katılımcılar arasında ters çevrilebilir. Anket öz-bildirimdir. Veriler cihazda olduğu için toplama, katılımcıların CSV göndermesiyle yapılır.
+**Sınırlılıklar (açıkça söylenmeli):** Küçük örneklem; 3 günlük kontrol dönemi kısa; kontrol ve oyunlu dönemin sırası sabit (sıra etkisi) — gelecek çalışmada dönemler katılımcılar arasında ters çevrilebilir. Anket öz-bildirimdir. Veriler cihazda olduğu için toplama, katılımcıların CSV göndermesiyle yapılır.
 
 ## 7. Teknik özet
 Saf HTML/CSS/JS (framework yok), PWA, çevrimdışı çalışır, sunucu yok; **86 birim testi** (zamanlayıcı, ekonomi, günlük tavan, hile önleme, migrasyon, haftalık olay, seri, istatistik, rozet, CSV/rapor, tema şeması, renk kontrastı); WCAG AA renk kontrastı, klavye ve ekran okuyucu desteği, hareket azaltma.

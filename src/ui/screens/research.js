@@ -1,4 +1,4 @@
-// Araştırma raporu: jüriye gösterilecek özet, anket öncesi/sonrası, CSV dışa aktarma, kontrol modu (gizli bölüm).
+// Araştırma raporu: özet sayılar, anket öncesi/sonrası, CSV dışa aktarma, kontrol modu (gizli bölüm).
 import { h, fromHTML } from '../dom.js';
 import { t, fmtMinutes } from '../../i18n/index.js';
 import { buildReport, buildCSV, controlActive, setControlMode, submitSurvey, surveyDue } from '../../core/research.js';

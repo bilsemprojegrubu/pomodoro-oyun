@@ -11,7 +11,7 @@ Dört tema vardır ve hepsi herkese açıktır; istediğin zaman değiştirebili
 | **Moda Stüdyosu** | Kumaş, model ve koleksiyon edin, defile düzenle |
 | **Hayvan Barınağı** | Dostlara bak, barınağı büyüt, sahiplendirme gününe katıl |
 
-Bu proje bir TÜBİTAK / Teknofest çalışmasıdır. İçinde **ölçülebilir veri toplayan bir araştırma modülü** vardır (bkz. `JURI_OZETI.md`).
+Bu proje, öğrencilere çalışma alışkanlığı kazandırarak topluma faydalı olmak için yapılmış, kâr amacı gütmeyen bir çalışmadır. İçinde, oyunlaştırmanın gerçekten işe yarayıp yaramadığını ölçmeye yarayan **isteğe bağlı bir araştırma modülü** vardır (bkz. `PROJE_OZETI.md`).
 
 > Tüm isimler ve karakterler kurgusaldır. Reklam, gerçek parayla satın alma, liderlik tablosu ve şans kutusu **yoktur**.
 
@@ -95,7 +95,7 @@ Motora (`src/core/`) dokunman gerekmez.
 
 ## Araştırma modülü
 
-Oturum kayıtları, 3 soruluk anket (başlangıç ve 2 hafta sonra), isteğe bağlı kontrol modu ve CSV dışa aktarma vardır. Ayrıntı ve sonuçların nasıl okunacağı: **`JURI_OZETI.md`**. Karar gerekçeleri: **`KARARLAR.md`**.
+Oturum kayıtları, 3 soruluk anket (başlangıç ve 2 hafta sonra), isteğe bağlı kontrol modu ve CSV dışa aktarma vardır. Ayrıntı ve sonuçların nasıl okunacağı: **`PROJE_OZETI.md`**. Karar gerekçeleri: **`KARARLAR.md`**.
 
 Gizli bölümü açmak için: Ayarlar → Hakkında → sürüm yazısına 5 kez dokun, sonra İstatistik → Araştırma raporu.
 
