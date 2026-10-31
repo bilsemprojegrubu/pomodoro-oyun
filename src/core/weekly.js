@@ -48,7 +48,7 @@ export function resolvePending(state, theme, now) {
   if (ts.lastEventWeek === week) return null;
   if (week < weekKey(ts.startedAt)) return null;
   ts.lastEventWeek = week;
-  const power = totalPower(theme, ts.owned);
+  const power = totalPower(theme, ts.owned, ts);
   const minutes = minutesInWeek(state.sessions, week);
   if (power === 0 && minutes === 0) return null;
   const ev = { themeId: theme.id, ...simulate({ theme, power, minutes, week }), at: now, day: dayKey(now) };

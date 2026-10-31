@@ -23,7 +23,7 @@ export function redeemHash(state, hash) {
   return { ok: true, coins: TEST_CODE_COINS, pomodoros: TEST_CODE_POMODOROS };
 }
 
-/** Temanın her kategorisinde, slot kotası kadar en güçlü ürünlerin kimlikleri (mevkili kategoride her mevkinin kotası ayrı). */
+/** (Her dizilişe yetsin diye mevki başına en yüksek kota kadar.) Temanın her kategorisinde, slot kotası kadar en güçlü ürünlerin kimlikleri (mevkili kategoride her mevkinin kotası ayrı). */
 export function bestLineupIds(theme) {
   const ids = [];
   for (const cat of theme.categories) {
@@ -32,7 +32,7 @@ export function bestLineupIds(theme) {
       theme.items
         .filter((i) => i.category === cat.id && slotGroup(cat, i) === g)
         .sort((a, b) => b.power - a.power || a.id.localeCompare(b.id))
-        .slice(0, slotCapacity(cat, g))
+        .slice(0, Math.max(slotCapacity(cat, g), ...Object.values(cat.formations || {}).map((f) => f[g] || 0)))
         .forEach((i) => ids.push(i.id));
     }
   }
@@ -43,6 +43,7 @@ export function bestLineupIds(theme) {
 export function applyAutoLineup(state, theme, now = Date.now()) {
   const ts = themeState(state, theme.id, now);
   let added = 0;
+  ts.picks = {}; // otomatik mod: elle seçimler kalkar, en güçlüler oynar
   for (const id of bestLineupIds(theme)) {
     if (!ts.owned.includes(id)) { ts.owned.push(id); added += 1; }
   }

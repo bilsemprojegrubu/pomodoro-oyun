@@ -63,30 +63,43 @@ export function slotGroup(cat, item) {
 }
 
 /** Slot grubunun kapasitesi. */
-export function slotCapacity(cat, group) {
-  return cat.roleSlots ? cat.roleSlots[group] || 0 : cat.slotLimit;
+export function slotCapacity(cat, group, setup = null) {
+  return cat.roleSlots ? slotsOf(cat, setup)[group] || 0 : cat.slotLimit;
+}
+
+/** Mevkili kategoride (futbol) seçili diziliş; yoksa varsayılan mevki kotaları. setup = tema ilerleme kaydı. */
+export function slotsOf(cat, setup = null) {
+  if (!cat.roleSlots) return null;
+  const f = setup && setup.formation;
+  return (cat.formations && cat.formations[f]) || cat.roleSlots;
 }
 
 /** Temanın her kategorisinde slotlara giren en güçlü ürünler (mevkili kategoride her mevkinin kotası ayrı). */
-export function equippedIds(theme, ownedIds) {
+export function equippedIds(theme, ownedIds, setup = null) {
   const owned = new Set(ownedIds);
+  const picks = (setup && setup.picks) || {};
   const out = {};
   for (const cat of theme.categories) {
     const mine = theme.items.filter((i) => i.category === cat.id && owned.has(i.id));
-    const groups = cat.roleSlots ? Object.keys(cat.roleSlots) : ['*'];
-    out[cat.id] = groups.flatMap((g) =>
-      mine
-        .filter((i) => slotGroup(cat, i) === g)
-        .sort((a, b) => b.power - a.power || a.id.localeCompare(b.id))
-        .slice(0, slotCapacity(cat, g))
-        .map((i) => i.id));
+    const groups = cat.roleSlots ? Object.keys(slotsOf(cat, setup)) : ['*'];
+    const manual = Array.isArray(picks[cat.id]) ? picks[cat.id] : null;
+    out[cat.id] = groups.flatMap((g) => {
+      const pool = mine.filter((i) => slotGroup(cat, i) === g);
+      const cap = slotCapacity(cat, g, setup);
+      if (manual) {
+        // Elle seçilmiş kadro: sadece sahip olunan, bu mevkiye ait, kotayı aşmayan seçimler.
+        const ok = new Set(pool.map((i) => i.id));
+        return [...new Set(manual)].filter((id) => ok.has(id)).slice(0, cap);
+      }
+      return pool.sort((a, b) => b.power - a.power || a.id.localeCompare(b.id)).slice(0, cap).map((i) => i.id);
+    });
   }
   return out;
 }
 
 /** Toplam güç: her kategoride sadece slotlara giren ürünler sayılır. */
-export function totalPower(theme, ownedIds) {
-  const eq = equippedIds(theme, ownedIds);
+export function totalPower(theme, ownedIds, setup = null) {
+  const eq = equippedIds(theme, ownedIds, setup);
   const byId = new Map(theme.items.map((i) => [i.id, i]));
   let sum = 0;
   for (const ids of Object.values(eq)) for (const id of ids) sum += byId.get(id).power;
@@ -131,16 +144,80 @@ export function buyItem(state, theme, itemId, now = Date.now()) {
   if (!item) return { ok: false, reason: 'notFound' };
   const ts = themeState(state, theme.id, now);
   if (ts.owned.includes(itemId)) return { ok: false, reason: 'owned' };
-  const before = levelInfo(theme, totalPower(theme, ts.owned));
+  const before = levelInfo(theme, totalPower(theme, ts.owned, ts));
   if (item.minLevel > before.level) return { ok: false, reason: 'locked' };
   if (state.wallet.coins < item.price) return { ok: false, reason: 'coins' };
   state.wallet.coins -= item.price;
   state.wallet.spentTotal += item.price;
   ts.owned.push(itemId);
+  addToManualPicks(theme, ts, item);
   if (ts.goalItem === itemId) ts.goalItem = null;
-  const power = totalPower(theme, ts.owned);
+  const power = totalPower(theme, ts.owned, ts);
   const after = levelInfo(theme, power);
   const leveledUp = after.level > ts.levelSeen;
   if (leveledUp) ts.levelSeen = after.level;
   return { ok: true, item, leveledUp, level: after.current, power };
+}
+
+/** Elle kurulmuş kadroda yeni alınan ürüne boş yer varsa onu da kadroya ekler (yoksa yedekte kalır). */
+function addToManualPicks(theme, ts, item) {
+  const manual = ts.picks && ts.picks[item.category];
+  if (!Array.isArray(manual)) return;
+  const cat = theme.categories.find((c) => c.id === item.category);
+  const eq = equippedIds(theme, ts.owned.filter((id) => id !== item.id), ts)[cat.id];
+  const group = slotGroup(cat, item);
+  const used = eq.filter((id) => slotGroup(cat, theme.items.find((i) => i.id === id)) === group).length;
+  if (used < slotCapacity(cat, group, ts)) manual.push(item.id);
+}
+
+/** Bir kategoride elle seçim yapılmış mı? */
+export const isManual = (ts, catId) => !!(ts.picks && Array.isArray(ts.picks[catId]));
+
+/** Elle kadroya geçer: o anki otomatik kadroyu başlangıç olarak kaydeder. */
+function startManual(theme, ts, catId) {
+  if (!ts.picks) ts.picks = {};
+  if (!Array.isArray(ts.picks[catId])) ts.picks[catId] = [...equippedIds(theme, ts.owned, ts)[catId]];
+}
+
+/** Kadrodaki `outId` yerine yedekteki `inId` ürününü koyar (aynı mevki). outId yoksa boş yere ekler. */
+export function swapPick(theme, ts, catId, inId, outId = null) {
+  startManual(theme, ts, catId);
+  const list = ts.picks[catId].filter((id) => id !== outId && id !== inId);
+  list.push(inId);
+  ts.picks[catId] = list;
+}
+
+/** Ürünü kadrodan çıkarıp yedeğe alır. */
+export function benchPick(theme, ts, catId, id) {
+  startManual(theme, ts, catId);
+  ts.picks[catId] = ts.picks[catId].filter((x) => x !== id);
+}
+
+/** Otomatik (en güçlü) kadroya geri döner. */
+export function resetPicks(ts, catId) {
+  if (ts.picks) delete ts.picks[catId];
+}
+
+/** Dizilişi değiştirir. Elle kadro varsa yeni kotalara sığdırıp boşları en güçlülerle doldurur. */
+export function setFormation(theme, ts, formation) {
+  const cat = theme.categories.find((c) => c.roleSlots && c.formations);
+  if (!cat || !cat.formations[formation]) return false;
+  const manual = isManual(ts, cat.id);
+  const before = manual ? equippedIds(theme, ts.owned, ts)[cat.id] : null;
+  ts.formation = formation;
+  if (manual) {
+    const kept = new Set(before);
+    const chosen = equippedIds(theme, ts.owned, { ...ts, picks: { [cat.id]: [...kept] } })[cat.id];
+    const out = [...chosen];
+    for (const [g, cap] of Object.entries(cat.formations[formation])) {
+      const have = out.filter((id) => slotGroup(cat, theme.items.find((i) => i.id === id)) === g).length;
+      const extra = theme.items
+        .filter((i) => i.category === cat.id && slotGroup(cat, i) === g && ts.owned.includes(i.id) && !out.includes(i.id))
+        .sort((a, b) => b.power - a.power || a.id.localeCompare(b.id))
+        .slice(0, Math.max(0, cap - have));
+      out.push(...extra.map((i) => i.id));
+    }
+    ts.picks[cat.id] = out;
+  }
+  return true;
 }

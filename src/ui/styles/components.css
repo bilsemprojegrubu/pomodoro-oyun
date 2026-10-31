@@ -291,3 +291,4 @@ body.focus-mode .toasts { bottom: var(--sp-5); }
 
 /* Ürün görseli */
 .item-art { display: block; flex: none; }
+.chips.wrap { flex-wrap: wrap; overflow-x: visible; }

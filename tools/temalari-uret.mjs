@@ -120,6 +120,13 @@ const football = {
     {
       id: 'players', name: 'Oyuncular', singular: 'oyuncu', slotLimit: 11, layout: 'pitch', icon: '👟',
       roleSlots: { Kaleci: 1, Defans: 4, 'Orta saha': 3, Forvet: 3 },
+      formations: {
+        '4-3-3': { Kaleci: 1, Defans: 4, 'Orta saha': 3, Forvet: 3 },
+        '4-4-2': { Kaleci: 1, Defans: 4, 'Orta saha': 4, Forvet: 2 },
+        '3-5-2': { Kaleci: 1, Defans: 3, 'Orta saha': 5, Forvet: 2 },
+        '3-4-3': { Kaleci: 1, Defans: 3, 'Orta saha': 4, Forvet: 3 },
+        '5-3-2': { Kaleci: 1, Defans: 5, 'Orta saha': 3, Forvet: 2 },
+      },
       positions: [
         { role: 'Kaleci', x: 50, y: 86 },
         { role: 'Defans', x: 14, y: 66 }, { role: 'Defans', x: 38, y: 70 }, { role: 'Defans', x: 62, y: 70 }, { role: 'Defans', x: 86, y: 66 },

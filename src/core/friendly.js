@@ -2,7 +2,7 @@
 // Para farm'lanamasın diye her maç için o gün tamamlanmış bir Pomodoro gerekir (günde en fazla 3 maç).
 import { CONFIG } from '../config.js';
 import { dayKey, seededRandom } from './dates.js';
-import { equippedIds, levelInfo, themeState, totalPower } from './economy.js';
+import { equippedIds, levelInfo, slotsOf, themeState, totalPower } from './economy.js';
 
 const F = CONFIG.friendly;
 const W = CONFIG.weekly;
@@ -23,15 +23,15 @@ const bestSum = (theme, pred, slots) => theme.items.filter(pred).map((i) => i.po
  * Alanlara göre güç: futbolda mevkiler (kaleci, defans...), diğer temalarda kategoriler.
  * strength: o alanın, oyundaki en iyi ürünlerle dolu olsaydı ulaşacağı gücün kaçta kaçı (0-1). En iyi kadroyla 1 olur.
  */
-export function lineup(theme, ownedIds) {
+export function lineup(theme, ownedIds, setup = null) {
   const cat = lineupCategory(theme);
-  const eq = equippedIds(theme, ownedIds);
+  const eq = equippedIds(theme, ownedIds, setup);
   const byId = new Map(theme.items.map((i) => [i.id, i]));
   const lines = {};
   let filled = 0;
   let total = 0;
   if (cat) {
-    for (const [role, slots] of Object.entries(cat.roleSlots)) {
+    for (const [role, slots] of Object.entries(slotsOf(cat, setup))) {
       const mine = eq[cat.id].map((id) => byId.get(id)).filter((i) => i.role === role);
       const best = bestSum(theme, (i) => i.category === cat.id && i.role === role, slots);
       const power = mine.reduce((a, i) => a + i.power, 0);
@@ -55,7 +55,7 @@ export function lineup(theme, ownedIds) {
 /** Bugünkü karşılaşma durumu: oynanabilir mi, neden olmuyor? */
 export function matchStatus(state, theme, now) {
   const ts = themeState(state, theme.id, now);
-  const lu = lineup(theme, ts.owned);
+  const lu = lineup(theme, ts.owned, ts);
   const day = dayKey(now);
   const done = (ts.friendlies || []).filter((m) => m.day === day).length;
   // Test kodu girilmişse sanki o kadar Pomodoro yapılmış gibi sayılır ve günlük sınır uygulanmaz.
@@ -106,7 +106,7 @@ export function playMatch(state, theme, now) {
   const ts = themeState(state, theme.id, now);
   const day = dayKey(now);
   const minutes = (state.daily[day] && state.daily[day].minutes) || 0;
-  const power = totalPower(theme, ts.owned);
+  const power = totalPower(theme, ts.owned, ts);
   const sim = simulateFriendly({ theme, power, minutes, day, n: st.done });
   const match = { themeId: theme.id, day, at: now, ...sim, analysis: analyze(st.lineup, sim) };
   state.wallet.coins += match.coins;

@@ -78,3 +78,10 @@ Talimatta net olmayan ya da birden fazla yolu olan yerlerde verilen kararlar. He
 
 ## Kusursuz kadroda analiz
 Tüm alanlar %100 iken "en zayıf alan / yatırım yap" önerisi gösterilmez; yerine "Kadron kusursuz" mesajı çıkar (`analyze().perfect`, eşik %99,5).
+
+## Oyun düzeni ve elle kadro
+- Futbolda 5 diziliş: 4-3-3 (varsayılan), 4-4-2, 3-5-2, 3-4-3, 5-3-2 (`formations`, `tools/temalari-uret.mjs`). Seçim tema kaydında (`formation`).
+- Kadro varsayılan olarak otomatik: her mevkide en güçlüler oynar. Bir oyuncuya dokunup yerine yedek koyunca ya da yedeğe alınca o kategori "elle" olur (`picks[kategori]`); "En güçlüleri otomatik seç" düğmesi geri döndürür.
+- Elle kadroda yeni alınan ürün, o mevkide boş yer varsa kadroya girer; yoksa yedekte kalır. Diziliş değişince kotaya sığdırılır, boşlar en güçlülerle dolar.
+- Seviye eşikleri 4-3-3'e göre hesaplı; elle kadro gücü düşürebilir (kullanıcı tercihi).
+- Test modu "otomatik kur" elle seçimleri siler ve her dizilişe yetecek oyuncuyu verir.

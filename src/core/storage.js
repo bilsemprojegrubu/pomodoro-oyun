@@ -41,7 +41,7 @@ export function defaultState(now = Date.now()) {
 
 /** Bir temanın boş ilerleme kaydı. */
 export function defaultThemeState(now = Date.now()) {
-  return { startedAt: now, owned: [], goalItem: null, lastEventWeek: null, events: [], levelSeen: 1 };
+  return { startedAt: now, owned: [], goalItem: null, lastEventWeek: null, events: [], levelSeen: 1, formation: '4-3-3', picks: {} };
 }
 
 // Sürüm göçleri: anahtar = ESKİ sürüm numarası, değer = bir üst sürüme çeviren fonksiyon.

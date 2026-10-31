@@ -58,14 +58,14 @@ export function mount(root, ctx) {
   }
 
   function card(item, ctxInfo) {
-    const { coins, lvl, owned, goal, eq } = ctxInfo;
+    const { coins, lvl, owned, goal, eq, ts0 } = ctxInfo;
     const isOwned = owned.includes(item.id);
     const locked = item.minLevel > lvl.level;
     const need = pomodorosNeeded(item.price, coins);
     const cat = theme.categories.find((c) => c.id === item.category);
     const group = slotGroup(cat, item);
     const inGroup = eq[item.category].map((id) => theme.items.find((i) => i.id === id)).filter((i) => slotGroup(cat, i) === group);
-    const full = inGroup.length >= slotCapacity(cat, group);
+    const full = inGroup.length >= slotCapacity(cat, group, ts0);
     const benchOnly = !isOwned && full && item.power <= Math.min(...inGroup.map((i) => i.power));
     let action;
     if (isOwned) {
@@ -96,10 +96,10 @@ export function mount(root, ctx) {
   function render() {
     const s = store.get();
     const ts = themeState(s, theme.id);
-    const power = totalPower(theme, ts.owned);
+    const power = totalPower(theme, ts.owned, ts);
     const lvl = levelInfo(theme, power);
-    const eq = equippedIds(theme, ts.owned);
-    const info = { coins: s.wallet.coins, lvl, owned: ts.owned, goal: ts.goalItem, eq };
+    const eq = equippedIds(theme, ts.owned, ts);
+    const info = { coins: s.wallet.coins, lvl, owned: ts.owned, goal: ts.goalItem, eq, ts0: ts };
     const items = theme.items
       .filter((i) => i.category === shopCat && (shopTier === 'all' || i.tier === shopTier))
       .sort((a, b) => TIER_ORDER.indexOf(a.tier) - TIER_ORDER.indexOf(b.tier) || a.power - b.power);
