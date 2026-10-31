@@ -187,3 +187,38 @@ body.focus-mode .ambient { position: fixed; inset: 0; border-radius: 0; }
 @keyframes sg-hop { 0%, 100% { transform: translateX(-50%) translateY(0); } 50% { transform: translateX(-50%) translateY(-8%); } }
 @keyframes sg-shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } }
 :root[data-motion="off"] .sg-cust, :root[data-motion="off"] .sg-tile.bad { animation: none; }
+
+/* Ek oyunlar */
+.sg-need { position: relative; }
+.sg-num { position: absolute; top: -6px; left: -6px; width: 18px; height: 18px; border-radius: 50%; background: var(--primary); color: var(--on-primary); font-size: 11px; display: grid; place-items: center; z-index: 1; }
+.mg { display: grid; gap: 0.6rem; }
+.mg-title { margin: 0; }
+.mg-msg { margin: 0; text-align: center; }
+.mg-btns { display: grid; gap: 0.5rem; }
+.mg-area { position: relative; min-height: 8px; }
+.mg-tower { position: relative; height: 270px; border-radius: 14px; background: linear-gradient(#cfe8ff, #fdf3e0); overflow: hidden; }
+.mg-layer { position: absolute; height: 10%; border-radius: 6px; box-shadow: inset 0 -4px 0 rgb(0 0 0 / 15%); }
+.mg-topitem { position: absolute; width: 11%; transform: translate(-50%, 0); line-height: 0; }
+.mg-topitem svg { width: 100%; height: auto; }
+.mg-drop { width: 100%; margin-top: 0.5rem; min-height: 52px; font-size: 1.1rem; }
+.mg-goal { position: relative; height: 150px; border-radius: 14px; background: #3c9d4e; border-top: 8px solid #fff; overflow: hidden; }
+.mg-zones { position: absolute; inset: 0; display: grid; grid-template-columns: repeat(3, 1fr); }
+.mg-zone { border: 2px dashed rgb(255 255 255 / 70%); background: transparent; cursor: pointer; }
+.mg-zone:active { background: rgb(255 255 255 / 25%); }
+.mg-keeper { position: absolute; bottom: 0; width: 24%; transform: translateX(-50%); transition: left 0.15s; pointer-events: none; line-height: 0; }
+.mg-keeper svg { width: 100%; height: auto; }
+.mg-ball { position: absolute; top: 162px; left: 50%; width: 36px; height: 36px; border-radius: 50%; background: radial-gradient(circle at 35% 35%, #fff 55%, #bbb); border: 2px solid #333; transform: translateX(-50%); transition: transform 0.4s; }
+.mg-goal { margin-bottom: 52px; }
+.mg-ball.fly { transform: translate(-50%, -120px) scale(0.6); }
+.mg-cards { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.5rem; }
+.mg-card { position: relative; aspect-ratio: 1; padding: 0; border-radius: 14px; border: 2px solid var(--border); background: var(--surface, #fff); cursor: pointer; }
+.mg-back { position: absolute; inset: 0; border-radius: 12px; background: var(--primary); opacity: 0.85; }
+.mg-face { position: absolute; inset: 4px; opacity: 0; line-height: 0; }
+.mg-face svg { width: 100%; height: 100%; }
+.mg-card.open .mg-back { opacity: 0; }
+.mg-card.open .mg-face { opacity: 1; }
+.mg-holes { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.6rem; }
+.mg-hole { aspect-ratio: 1; border-radius: 50%; border: 0; background: radial-gradient(#5b3a22 55%, #8a5a3b); padding: 12%; cursor: pointer; overflow: hidden; line-height: 0; }
+.mg-hole svg { width: 100%; height: 100%; opacity: 0; transform: translateY(60%); transition: all 0.15s; }
+.mg-hole.up svg { opacity: 1; transform: none; }
+:root[data-motion="off"] .mg-ball, :root[data-motion="off"] .mg-keeper, :root[data-motion="off"] .mg-hole svg { transition: none; }

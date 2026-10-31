@@ -6,6 +6,7 @@ import { characterArt } from '../../assets/art.js';
 import { propArt } from '../../assets/props.js';
 import { sceneFor, stageFor } from './scenes.js';
 import { levelInfo, totalPower } from '../../core/economy.js';
+import { miniGame, MINI } from './miniGames.js';
 
 const CFG = {
   cafe: { parts: [{ cat: 'menu', n: [1, 3] }], cust: 'cafe', play: 'Siparişleri hazırla', ask: 'Müşteri bunları istiyor:', done: 'Afiyet olsun!' },
@@ -15,9 +16,9 @@ const CFG = {
 };
 // Zorluk, temanın seviyesine göre artar: sipariş büyür, tepsi kalabalıklaşır, sabır kısalır.
 const diff = (idx) => ({
-  patience: Math.max(12, 24 - idx * 1.5),
-  extraNeed: Math.floor(idx / 2),
-  tray: Math.min(12, 8 + Math.floor(idx / 2) * 2),
+  patience: Math.max(8, 18 - idx * 1.2),
+  extraNeed: Math.ceil(idx / 2) + 1,
+  tray: Math.min(16, 8 + idx * 2),
 });
 
 const HEART = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21C4 14 2 9.500 2 7a5 5 0 0 1 10-1 5 5 0 0 1 10 1c0 2.500-2 7-10 14z" fill="#E4373D"/></svg>';
@@ -68,7 +69,8 @@ export function sceneBox(theme, ts) {
     stopTimer();
     G.playing = false;
     box.replaceChildren(live,
-      h('button', { class: 'btn btn-primary scene-play', type: 'button', onClick: () => { G.playing = true; showGame(); } }, `▶ ${cfg.play}`));
+      h('button', { class: 'btn btn-primary scene-play', type: 'button', onClick: () => { G.playing = true; showGame(); } }, `▶ ${cfg.play}`),
+      h('button', { class: 'btn btn-outline scene-play', type: 'button', onClick: () => box.replaceChildren(miniGame(theme, ts, lvl.index, showLive)) }, `★ ${MINI[theme.id].title}`));
   };
 
   const showGame = () => {
@@ -107,7 +109,7 @@ export function sceneBox(theme, ts) {
         return;
       }
       status.textContent = '';
-      for (const it of order.need) orderRow.append(h('span', { class: 'sg-need', dataset: { id: it.id }, title: it.name }, iconOf(it)));
+      order.need.forEach((it, i) => orderRow.append(h('span', { class: 'sg-need', dataset: { id: it.id }, title: it.name }, h('b', { class: 'sg-num' }, String(i + 1)), iconOf(it))));
       for (const it of order.tray) {
         const b = h('button', { class: 'sg-tile', type: 'button', 'aria-label': it.name, title: it.name, onClick: () => tap(it, b) }, iconOf(it));
         tray.append(b);
@@ -140,19 +142,18 @@ export function sceneBox(theme, ts) {
 
     const tap = (it, btn) => {
       if (busy || !order) return;
-      if (order.need.includes(it)) {
-        if (got.has(it.id)) return;
+      if (it === order.need[got.size]) {
         got.add(it.id);
         btn.classList.add('ok');
         btn.disabled = true;
         orderRow.querySelector(`[data-id="${it.id}"]`).classList.add('done');
         if (got.size === order.need.length) finish(true);
       } else {
-        left = Math.max(0, left - 3);
+        left = Math.max(0, left - 4);
         G.streak = 0;
         btn.classList.add('bad');
         setTimeout(() => btn.classList.remove('bad'), 400);
-        status.textContent = 'Bu değil! Sabır azaldı.';
+        status.textContent = order.need.includes(it) ? 'Sıra yanlış! Siparişi soldan sağa say.' : 'Bu değil! Sabır azaldı.';
         refreshStats();
       }
     };

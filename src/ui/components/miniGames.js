@@ -1,0 +1,144 @@
+// Temaya özel ek oyunlar (sadece eğlence; Pomodoro parasını etkilemez).
+// cafe: pasta kulesi · football: penaltı · fashion: kombin eşleştirme · shelter: hayvanları besle
+import { h, fromHTML } from '../dom.js';
+import { characterArt } from '../../assets/art.js';
+import { propArt } from '../../assets/props.js';
+
+export const MINI = {
+  cafe: { title: 'Pasta kulesi', how: 'Hareket eden katmanı doğru anda "Bırak" ile üstüne koy. Taşan kısım kesilir, kule yükseldikçe hızlanır.' },
+  football: { title: 'Penaltı atışları', how: '5 şutun var. Kaleci hareket ediyor: o an durmadığı köşeyi seç ve vur!' },
+  fashion: { title: 'Kombin eşleştirme', how: 'Kartları çevir, aynı olan çiftleri bul. Az hamlede bitir!' },
+  shelter: { title: 'Hayvanları besle', how: '30 saniyen var. Yuvalardan çıkan hayvanlara dokunarak onları besle, kaçırma!' },
+};
+
+const rnd = (a, b) => a + Math.floor(Math.random() * (b - a + 1));
+const shuffle = (a) => a.map((v) => [Math.random(), v]).sort((x, y) => x[0] - y[0]).map((x) => x[1]);
+const icon = (it) => fromHTML(propArt(it.id) || characterArt('cafe', 0, '', it.id, 64));
+const ownedOf = (theme, ts, cats) => theme.items.filter((i) => cats.includes(i.category) && ts.owned.includes(i.id));
+
+let stopFn = null;
+const stopAll = () => { if (stopFn) { stopFn(); stopFn = null; } };
+/** Zamanlayıcı kur: ekran değişince (eleman DOM'dan çıkınca) kendiliğinden durur. */
+function every(root, ms, fn) {
+  const id = setInterval(() => { if (!root.isConnected) { stopAll(); return; } fn(); }, ms);
+  const prev = stopFn;
+  stopFn = () => { clearInterval(id); if (prev) prev(); };
+}
+
+export function miniGame(theme, ts, idx, back) {
+  stopAll();
+  const info = MINI[theme.id];
+  const root = h('div', { class: 'mg' });
+  const msg = h('p', { class: 'small mg-msg', 'aria-live': 'polite' }, info.how);
+  const area = h('div', { class: 'mg-area' });
+  const startBtn = h('button', { class: 'btn btn-primary', type: 'button' }, 'Başla');
+  const exit = h('button', { class: 'btn btn-outline', type: 'button', onClick: () => { stopAll(); back(); } }, 'Geri dön');
+  root.append(h('h3', { class: 'mg-title' }, info.title), msg, area, h('div', { class: 'mg-btns' }, startBtn, exit));
+  const GAMES = { cafe: tower, football: penalty, fashion: memory, shelter: feed };
+  const ctx = { theme, ts, idx, root, msg, area, startBtn, done: (t) => { msg.textContent = t; startBtn.textContent = 'Tekrar oyna'; startBtn.hidden = false; } };
+  startBtn.addEventListener('click', () => { stopAll(); area.replaceChildren(); startBtn.hidden = true; GAMES[theme.id](ctx); });
+  return root;
+}
+
+// ---- Kafe: pasta kulesi ----
+function tower({ theme, ts, idx, root, msg, area, done }) {
+  const colors = ['#F28CB1', '#F6D186', '#8A5A3B', '#F9F4E8', '#E4573D', '#7BC47F'];
+  const board = h('div', { class: 'mg-tower' });
+  const drop = h('button', { class: 'btn btn-primary mg-drop', type: 'button' }, 'Bırak');
+  area.append(board, drop);
+  const items = ownedOf(theme, ts, ['menu']);
+  let layers = [{ x: 25, w: 50 }];
+  let w = 50, x = 0, dir = 1, over = false;
+  const speed = () => 1.1 + idx * 0.15 + layers.length * 0.12;
+  const draw = () => {
+    const rows = layers.slice(-7);
+    const base = layers.length - rows.length;
+    board.replaceChildren(...rows.map((l, i) => h('i', { class: 'mg-layer', style: { left: `${l.x}%`, width: `${l.w}%`, bottom: `${i * 11}%`, background: colors[(base + i) % colors.length] } })));
+    if (!over) board.append(h('i', { class: 'mg-layer mg-move', style: { left: `${x}%`, width: `${w}%`, bottom: `${rows.length * 11}%`, background: colors[layers.length % colors.length] } }));
+    if (items.length) { const it = items[layers.length % items.length]; const t = h('span', { class: 'mg-topitem', style: { left: `${(over ? layers[layers.length - 1].x + layers[layers.length - 1].w / 2 : x + w / 2)}%`, bottom: `${(rows.length + (over ? 0 : 1)) * 11}%` } }, icon(it)); board.append(t); }
+    msg.textContent = `Kat: ${layers.length}`;
+  };
+  every(root, 30, () => { if (over) return; x += dir * speed() * 0.6; if (x + w >= 100) { x = 100 - w; dir = -1; } if (x <= 0) { x = 0; dir = 1; } draw(); });
+  drop.addEventListener('click', () => {
+    if (over) return;
+    const last = layers[layers.length - 1];
+    const l = Math.max(x, last.x), r = Math.min(x + w, last.x + last.w);
+    if (r - l <= 1) { over = true; draw(); stopAll(); drop.hidden = true; done(`Kule yıkıldı! ${layers.length - 1} kat yaptın.`); return; }
+    layers.push({ x: l, w: r - l }); w = r - l; x = 0; dir = 1;
+  });
+  draw();
+}
+
+// ---- Futbol: penaltı ----
+function penalty({ theme, idx, root, msg, area, done }) {
+  let keeper = 1, shots = 5, goals = 0, busy = false;
+  const k = h('span', { class: 'mg-keeper' }, fromHTML(characterArt('gk', 1, 'Kaleci', 'kaleci', 70)));
+  const ball = h('span', { class: 'mg-ball' });
+  const zones = [0, 1, 2].map((z) => h('button', { class: 'mg-zone', type: 'button', 'aria-label': ['Sol köşe', 'Orta', 'Sağ köşe'][z], onClick: () => shoot(z) }));
+  const goal = h('div', { class: 'mg-goal' }, h('div', { class: 'mg-zones' }, ...zones), k);
+  area.append(goal, ball);
+  const place = () => { k.style.left = `${keeper * 33.3 + 16.6}%`; };
+  const upd = () => { msg.textContent = `Kalan şut: ${shots} · Gol: ${goals}`; };
+  every(root, Math.max(280, 750 - idx * 55), () => { if (!busy) { keeper = rnd(0, 2); place(); } });
+  function shoot(z) {
+    if (busy || shots <= 0) return;
+    busy = true; shots -= 1;
+    const g = z !== keeper;
+    if (g) goals += 1;
+    ball.style.left = `${z * 33.3 + 16.6}%`; ball.classList.add('fly');
+    msg.textContent = g ? 'GOL!' : 'Kaleci kurtardı!';
+    setTimeout(() => {
+      ball.classList.remove('fly'); ball.style.left = '50%'; busy = false;
+      if (shots <= 0) { stopAll(); done(`Maç bitti: ${goals}/5 gol.`); } else upd();
+    }, 900);
+  }
+  place(); upd();
+}
+
+// ---- Moda: kart eşleştirme ----
+function memory({ theme, ts, idx, root, msg, area, done }) {
+  const pool = ownedOf(theme, ts, ['fabrics', 'outfits', 'studio']);
+  if (pool.length < 2) { done('Önce mağazadan en az 2 kumaş veya kıyafet al.'); return; }
+  const pairs = shuffle(pool).slice(0, Math.min(8, 3 + Math.floor(idx / 2) + 1, pool.length));
+  const cards = shuffle([...pairs, ...pairs].map((it, i) => ({ it, i, open: false, ok: false })));
+  const board = h('div', { class: 'mg-cards' });
+  area.append(board);
+  let first = null, lock = false, moves = 0, found = 0;
+  const btns = cards.map((c) => {
+    const b = h('button', { class: 'mg-card', type: 'button', 'aria-label': 'Kart', onClick: () => flip(c, b) }, h('span', { class: 'mg-back' }), h('span', { class: 'mg-face' }, icon(c.it)));
+    board.append(b); return b;
+  });
+  const upd = () => { msg.textContent = `Hamle: ${moves} · Bulunan: ${found}/${pairs.length}`; };
+  function flip(c, b) {
+    if (lock || c.open || c.ok) return;
+    c.open = true; b.classList.add('open');
+    if (!first) { first = [c, b]; return; }
+    moves += 1; lock = true;
+    const [c0, b0] = first; first = null;
+    if (c0.it === c.it) { c0.ok = c.ok = true; found += 1; lock = false; upd(); if (found === pairs.length) done(`Tebrikler! ${moves} hamlede bitirdin.`); return; }
+    setTimeout(() => { c0.open = c.open = false; b0.classList.remove('open'); b.classList.remove('open'); lock = false; upd(); }, 700);
+  }
+  upd();
+}
+
+// ---- Barınak: hayvanları besle ----
+function feed({ theme, ts, idx, root, msg, area, done }) {
+  const pool = ownedOf(theme, ts, ['animals']);
+  if (!pool.length) { done('Önce mağazadan bir hayvan sahiplen.'); return; }
+  let score = 0, miss = 0, time = 30;
+  const holes = Array.from({ length: 9 }, () => h('button', { class: 'mg-hole', type: 'button', 'aria-label': 'Yuva' }));
+  const grid = h('div', { class: 'mg-holes' }, ...holes);
+  area.append(grid);
+  const upd = () => { msg.textContent = `Süre: ${Math.ceil(time)} sn · Beslenen: ${score} · Kaçan: ${miss}`; };
+  holes.forEach((b) => b.addEventListener('click', () => { if (b.classList.contains('up')) { b.classList.remove('up'); b.replaceChildren(); score += 1; upd(); } }));
+  const show = () => {
+    const free = holes.filter((b) => !b.classList.contains('up'));
+    if (!free.length) return;
+    const b = free[rnd(0, free.length - 1)];
+    b.replaceChildren(icon(pool[rnd(0, pool.length - 1)])); b.classList.add('up');
+    setTimeout(() => { if (b.classList.contains('up')) { b.classList.remove('up'); b.replaceChildren(); miss += 1; } }, Math.max(650, 1400 - idx * 70));
+  };
+  every(root, Math.max(420, 900 - idx * 50), () => { if (time > 0) show(); });
+  every(root, 250, () => { time -= 0.25; upd(); if (time <= 0) { stopAll(); done(`Süre doldu! ${score} hayvanı besledin.`); } });
+  upd();
+}
