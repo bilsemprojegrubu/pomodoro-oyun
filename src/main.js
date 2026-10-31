@@ -15,9 +15,8 @@ import { THEMES } from './themes/index.js';
 import { createBackend, createStorage } from './core/storage.js';
 import { createStore } from './core/store.js';
 import { createLock } from './core/antiCheat.js';
-import { dayKey } from './core/dates.js';
 import { createController, realClock } from './core/controller.js';
-import { controlActive, surveyDue } from './core/research.js';
+import { controlActive } from './core/research.js';
 import { resolvePending } from './core/weekly.js';
 import { BADGES } from './core/achievements.js';
 import { setSoundEnabled } from './ui/sound.js';
@@ -27,7 +26,6 @@ import { renderNav } from './ui/components/nav.js';
 import { toast } from './ui/components/toast.js';
 import { showCompletion, showInterrupted } from './ui/components/celebration.js';
 import { showWeekly } from './ui/screens/weekly.js';
-import { openSurvey } from './ui/screens/research.js';
 
 import * as focusScreen from './ui/screens/focus.js';
 import * as worldScreen from './ui/screens/world.js';
@@ -249,7 +247,7 @@ if (reduceQuery && reduceQuery.addEventListener) reduceQuery.addEventListener('c
 
 setInterval(() => ctrl.tick(), 500);
 
-// ---------------- Haftalık olay ve anket ----------------
+// ---------------- Haftalık olay ----------------
 let showingWeekly = false;
 
 /** Bekleyen haftalık olay sonuçlarını sırayla gösterir. */
@@ -273,13 +271,6 @@ function showNextEvent() {
   });
 }
 
-function checkSurvey() {
-  const s = store.get();
-  const due = surveyDue(s, Date.now());
-  const today = dayKey(Date.now());
-  if (due && s.research.surveySnoozedDay !== today && !document.getElementById('overlay').childElementCount) openSurvey(ctx, due);
-}
-
 // ---------------- Başlat ----------------
 applySettings();
 ctrl.restore();
@@ -290,7 +281,6 @@ navigate();
 try { if (navigator.storage && navigator.storage.persist) navigator.storage.persist(); } catch { /* sessizce geç */ }
 setTimeout(() => {
   checkWeekly();
-  if (!store.get().pendingEvents.length) checkSurvey();
 }, 600);
 
 if (!backend.persistent) toast(t('settings.noStorage'), 6000);

@@ -25,9 +25,7 @@ await page.getByRole('button', { name: 'Bu temayla başla' }).click();
 await page.getByRole('button', { name: 'Devam' }).click();
 await page.getByRole('button', { name: 'Devam' }).click();
 await page.getByRole('button', { name: '4 Pomodoro' }).first().click();
-await page.getByRole('button', { name: 'Devam' }).click();
-await shot('03-survey');
-await page.getByRole('button', { name: 'Şimdi değil' }).click();
+await page.getByRole('button', { name: 'Hadi başlayalım' }).click();
 await shot('04-focus-idle');
 
 await page.locator('#task').fill('Matematik - türev');

@@ -247,6 +247,7 @@
     "noGender": "Her tema herkese açıktır; istediğin zaman değiştirebilirsin.",
     "changeAnytime": "İstediğin zaman değiştirebilirsin. İlerlemen silinmez; her temanın ilerlemesi ayrı saklanır.",
     "start": "Bu temayla başla",
+    "finish": "Hadi başlayalım",
     "stepOf": "Adım {n} / {total}"
   },
   "consent": {

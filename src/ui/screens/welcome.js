@@ -1,14 +1,11 @@
-// İlk açılış: aydınlatma metni -> tema seçimi -> 3 adımlı tanıtım -> isteğe bağlı anket.
+// İlk açılış: aydınlatma metni -> tema seçimi -> 3 adımlı tanıtım.
 import { CONFIG } from '../../config.js';
 import { h, clear } from '../dom.js';
 import { t } from '../../i18n/index.js';
 import { themePicker } from '../components/themePicker.js';
-import { surveyForm } from '../components/survey.js';
 import { themeState } from '../../core/economy.js';
-import { submitSurvey } from '../../core/research.js';
-import { dayKey } from '../../core/dates.js';
 
-const STEPS = ['consent', 'theme', 'how1', 'how2', 'goal', 'survey'];
+const STEPS = ['consent', 'theme', 'how1', 'how2', 'goal'];
 
 export function mount(root, ctx) {
   const { store } = ctx;
@@ -80,14 +77,7 @@ export function mount(root, ctx) {
         h('div', { class: 'chips', role: 'group', 'aria-label': t('how.s3.title') },
           CONFIG.goals.map((g) => h('button', { type: 'button', class: 'chip', 'aria-pressed': String(goal === g), onClick: () => { goal = g; draw(); } }, t('how.s3.option', { n: g })))),
         h('p', { class: 'small muted' }, t('how.s3.hint')),
-        nav(() => go('survey'), { back: 'how2' }));
-    } else {
-      box.append(h('h1', null, t('survey.title')),
-        surveyForm({
-          phase: 'baseline',
-          onSubmit: (answers) => { store.update((s) => { submitSurvey(s, 'baseline', answers, Date.now()); }); finish(); },
-          onSkip: () => { store.update((x) => { x.research.surveySnoozedDay = dayKey(Date.now()); }, { silent: true }); finish(); },
-        }));
+        nav(() => finish(), { back: 'how2', label: t('welcome.finish') }));
     }
   }
 
