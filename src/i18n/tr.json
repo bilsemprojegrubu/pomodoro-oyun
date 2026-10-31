@@ -290,7 +290,10 @@
     "button": "Kodu kullan",
     "ok": "Kod kabul edildi: +{n} para 🪙",
     "bad": "Kod yanlış.",
-    "unsupported": "Bu tarayıcı kodu denetleyemedi."
+    "unsupported": "Bu tarayıcı kodu denetleyemedi.",
+    "auto": "En güçlü kadroyu otomatik kur",
+    "autoDesc": "Açınca her mevkiye en güçlü oyuncular bedava yerleşir (seviye kilidi aranmaz). Temayı değiştirince yeni temada da yerleşir. Sadece test içindir.",
+    "autoOn": "En güçlü kadro kuruldu ⚡"
   },
   "settings": {
     "title": "Ayarlar",

@@ -16,3 +16,32 @@ describe('test kodu', () => {
     expect(redeemHash(state, await hashText('oyb160512.')).ok).toBe(false);
   });
 });
+
+import { THEMES } from '../src/themes/index.js';
+import { applyAutoLineup, bestLineupIds } from '../src/core/testcode.js';
+import { equippedIds, totalPower } from '../src/core/economy.js';
+import { defaultState } from '../src/core/storage.js';
+
+describe('otomatik en güçlü kadro', () => {
+  it('her temada kadroyu doldurur ve toplam güç tüm kadrodan büyük olamaz', () => {
+    for (const theme of Object.values(THEMES)) {
+      const state = defaultState(Date.now());
+      applyAutoLineup(state, theme);
+      const owned = state.themes[theme.id].owned;
+      const eq = equippedIds(theme, owned);
+      for (const cat of theme.categories) {
+        const groups = cat.roleSlots ? Object.values(cat.roleSlots) : [cat.slotLimit];
+        expect(eq[cat.id].length).toBe(groups.reduce((a, b) => a + b, 0));
+      }
+      expect(owned.length).toBe(bestLineupIds(theme).length);
+      expect(totalPower(theme, owned)).toBeGreaterThan(0);
+    }
+  });
+  it('ikinci kez çalışınca yinelenen eklemez, parayı değiştirmez', () => {
+    const theme = THEMES.football;
+    const state = defaultState(Date.now());
+    applyAutoLineup(state, theme);
+    expect(applyAutoLineup(state, theme)).toBe(0);
+    expect(state.wallet.coins).toBe(0);
+  });
+});

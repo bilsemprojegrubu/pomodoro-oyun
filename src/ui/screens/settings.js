@@ -9,7 +9,7 @@ import { toast } from '../components/toast.js';
 import { ask as askNotify, supported as notifySupported } from '../notify.js';
 import { themeState } from '../../core/economy.js';
 import { defaultState } from '../../core/storage.js';
-import { hashText, redeemHash } from '../../core/testcode.js';
+import { hashText, redeemHash, applyAutoLineup } from '../../core/testcode.js';
 
 let versionTaps = 0;
 
@@ -58,7 +58,7 @@ export function mount(root, ctx) {
           onClick: () => {
             const id = picker.selected;
             if (!id) return false;
-            store.update((s) => { s.profile.theme = id; themeState(s, id, Date.now()); });
+            store.update((s) => { s.profile.theme = id; themeState(s, id, Date.now()); if (s.settings.testAutoLineup) applyAutoLineup(s, THEMES[id]); });
             ctx.applyTheme();
             toast(t('settings.themeChanged', { name: THEMES[id].name }));
           },
@@ -149,7 +149,14 @@ export function mount(root, ctx) {
         h('div', { class: 'field' }, h('label', { for: 'tcode' }, t('testCode.label')),
           h('input', { class: 'input', id: 'tcode', type: 'password', autocomplete: 'off', autocapitalize: 'off', spellcheck: 'false', placeholder: t('testCode.placeholder') }),
           h('p', { class: 'small muted' }, t('testCode.desc'))),
-        h('button', { type: 'button', class: 'btn btn-outline', onClick: useTestCode }, t('testCode.button'))),
+        h('button', { type: 'button', class: 'btn btn-outline', onClick: useTestCode }, t('testCode.button')),
+        toggleRow('tauto', t('testCode.auto'), t('testCode.autoDesc'), !!st.testAutoLineup, (v) => {
+          store.update((s) => {
+            s.settings.testAutoLineup = v;
+            if (v && THEMES[s.profile.theme]) applyAutoLineup(s, THEMES[s.profile.theme]);
+          });
+          if (v) toast(t('testCode.autoOn'));
+        })),
       section(t('settings.data'),
         h('p', { class: 'small muted' }, t('settings.dataDesc')),
         h('div', { class: 'row-wrap' },
