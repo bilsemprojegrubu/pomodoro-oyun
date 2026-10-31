@@ -286,6 +286,8 @@ ctrl.restore();
 route = resolveRoute();
 started = true;
 navigate();
+// Tarayıcıdan "depolamayı koru" izni iste: depolama dolunca ya da temizlikte kayıt kendiliğinden silinmesin.
+try { if (navigator.storage && navigator.storage.persist) navigator.storage.persist(); } catch { /* sessizce geç */ }
 setTimeout(() => {
   checkWeekly();
   if (!store.get().pendingEvents.length) checkSurvey();
