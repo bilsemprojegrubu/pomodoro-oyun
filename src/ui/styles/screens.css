@@ -159,3 +159,31 @@ body.focus-mode .ambient { position: fixed; inset: 0; border-radius: 0; }
 :root[data-motion="off"] .sc-cust { animation: none; left: var(--stop); }
 :root[data-motion="off"] .sc-cust > svg, :root[data-motion="off"] .sc-p svg { animation: none !important; }
 :root[data-motion="off"] .sc-bubble { animation: none; opacity: 1; transform: none; }
+
+/* Servis oyunu */
+.scene-box { display: grid; gap: 0.6rem; }
+.scene-play { width: 100%; }
+.sg-bubble { position: absolute; left: 4%; right: 4%; top: 4%; z-index: 6; background: rgb(255 255 255 / 94%); border-radius: 14px; padding: 0.4rem 0.6rem; color: #2b2b2b; box-shadow: 0 2px 6px rgb(0 0 0 / 20%); }
+.sg-ask { margin: 0 0 0.2rem; font-weight: 600; }
+.sg-order { display: flex; gap: 0.4rem; justify-content: center; flex-wrap: wrap; }
+.sg-need { width: 14cqw; max-width: 56px; padding: 2px; border-radius: 10px; background: #fff3d6; border: 2px solid #e8c468; transition: opacity 0.2s; }
+.sg-need svg, .sg-tile svg { width: 100%; height: auto; display: block; }
+.sg-need.done { opacity: 0.35; border-color: #5fae5b; }
+.sg-cust { position: absolute; left: 50%; bottom: 0; width: 30%; transform: translateX(-50%); z-index: 4; line-height: 0; transition: transform 0.8s, opacity 0.8s; animation: sc-bob 0.7s ease-in-out infinite alternate; }
+.sg-cust svg { width: 100%; height: auto; display: block; }
+.sg-cust.happy { animation: sg-hop 0.5s ease-out 2; }
+.sg-cust.leave { transform: translateX(160%); opacity: 0; }
+.sg-react { position: absolute; left: 50%; bottom: 52%; transform: translateX(-50%); z-index: 7; display: flex; gap: 2px; width: 24%; }
+.sg-react svg { width: 100%; height: auto; }
+.sg-bar { position: absolute; left: 4%; right: 4%; bottom: 3%; height: 3.2cqw; border-radius: 99px; background: rgb(0 0 0 / 25%); z-index: 6; overflow: hidden; }
+.sg-bar-fill { display: block; height: 100%; width: 100%; background: #5fae5b; transition: width 0.25s linear; }
+.sg-bar-fill.low { background: #e4573d; }
+.sg-tray { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.5rem; }
+.sg-tile { padding: 4px; border-radius: 14px; border: 2px solid var(--border); background: var(--surface, #fff); cursor: pointer; min-height: 44px; }
+.sg-tile:active { transform: scale(0.95); }
+.sg-tile.ok { border-color: #5fae5b; opacity: 0.4; }
+.sg-tile.bad { animation: sg-shake 0.35s; border-color: #e4573d; }
+.sg-status, .sg-stats { margin: 0; text-align: center; }
+@keyframes sg-hop { 0%, 100% { transform: translateX(-50%) translateY(0); } 50% { transform: translateX(-50%) translateY(-8%); } }
+@keyframes sg-shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } }
+:root[data-motion="off"] .sg-cust, :root[data-motion="off"] .sg-tile.bad { animation: none; }

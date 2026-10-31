@@ -98,3 +98,9 @@ Kafe, moda ve barınak temaları baştan sona gezildi (kadro, mağaza verisi, el
 - Arkadaşın sitesinden hiçbir görsel alınmadı.
 - Kadro seçimi sahneye yansır (sadece slotlara giren ürünler çizilir). Hareket kapalıyken animasyonlar durur.
 - Düzeltme: karakter kıyafet/saç rengi seçiminde negatif indeks hatası giderildi (`>>>`).
+
+## Servis oyunu (dört tema, İyi Pizza Güzel Pizza tarzı)
+- Dünyam sahnesinin altındaki "Oyna" düğmesi servis oyununu açar: müşteri gelir, siparişini söyler (sahip olunan eşyalardan), oyuncu tepsiden doğru eşyalara dokunur. Sabır çubuğu dolmadan yetişirse 1-3 yıldız.
+- Yanlış eşya sabrı azaltır ve seriyi bozar. Sipariş, oyuncunun sahip olduğu eşyalardan çıkar; eşya aldıkça oyun zenginleşir.
+- Oyun puanı SADECE eğlence içindir: Pomodoro parasını ve seviyeyi etkilemez, böylece odaklanma ekonomisi bozulmaz. Araştırma kontrol modunda Dünyam zaten kapalıdır.
+- Kod: src/ui/components/serviceGame.js (oyun), scenes.js (stageFor), screens.css (.sg-*). Hareket azaltma ayarına uyar.

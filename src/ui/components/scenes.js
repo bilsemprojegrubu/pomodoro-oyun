@@ -225,3 +225,10 @@ export function sceneFor(theme, ts) {
   const make = SCENES[theme.id];
   return make ? make(theme, ts) : null;
 }
+
+const BGS = { cafe: () => CAFE_BG, football: footballBg, fashion: fashionBg, shelter: shelterBg };
+
+/** Oyun sahnesi: sadece arka plan + verilen öğeler (etkileşimli oyun için). */
+export function stageFor(theme, children, label) {
+  return frame(theme, theme.id, (BGS[theme.id] || BGS.cafe)(), children, label);
+}
