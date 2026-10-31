@@ -75,3 +75,6 @@ Talimatta net olmayan ya da birden fazla yolu olan yerlerde verilen kararlar. He
 - **Test kodu ve hazırlık maçı:** Kod girilince ayrıca "1000 Pomodoro yapılmış" sayılır (`settings.testBonusPomodoros`). Hazırlık maçında günlük 3 sınırı ve "Pomodoro tamamla" şartı kalkar. Günlük istatistik, seri ve hedef etkilenmez. Kaldırma: `testcode.js`, `friendly.js` içindeki `bonus` satırları.
 - **Alan yüzdesi düzeltildi:** Analizde bir alanın yüzdesi artık, oyunda gerçekten bulunan en iyi ürünlerle dolu olsaydı ulaşacağı güce göre hesaplanır (eskiden "her slotta en iyi tek ürün" varsayılıyordu, bu yüzden en iyi kadro bile %54 çıkabiliyordu). En güçlü kadro her alanda %100 verir.
 - **Futbolda efsane kadro:** Her mevkide kadroyu dolduracak kadar Efsane oyuncu vardır (Kaleci 1, Defans 4, Orta saha 3, Forvet 3). Hepsini alan takım kusursuzdur (analizde her alan %100). Yeni oyuncular üretici listesinin sonuna eklendi, böylece eski kayıtlardaki oyuncu numaraları ve güçleri değişmedi. Azami güç 745'ten 956'ya çıktığı için futbolun seviye eşikleri ve rakip güçleri yeniden hesaplandı (3. Lig 60→76, 2. Lig 164→210, 1. Lig 313→402, Süper Lig 507→650).
+
+## Kusursuz kadroda analiz
+Tüm alanlar %100 iken "en zayıf alan / yatırım yap" önerisi gösterilmez; yerine "Kadron kusursuz" mesajı çıkar (`analyze().perfect`, eşik %99,5).

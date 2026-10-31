@@ -406,6 +406,7 @@
     "effort": "Bugünkü {time} odak çalışman da sonuca yansıdı.",
     "lines": "Alanlarının güç durumu",
     "line": "{role}: %{percent}",
+    "perfect": "Kadron kusursuz: tüm alanların %100. Güçlendirilecek zayıf bir alanın yok! 🏆",
     "strong": "En güçlü alanın: {role}.",
     "weak": "En zayıf alanın: {role}. Mağazadan bu alana yatırım yapmak seni en çok güçlendirir.",
     "tip": {

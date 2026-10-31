@@ -43,8 +43,10 @@ function showMatch(ctx, theme, match) {
       match.minutes > 0 ? h('p', { class: 'small muted' }, t('friendly.effort', { time: fmtMinutes(match.minutes) })) : null,
       h('p', { class: 'small' }, t('friendly.lines')),
       h('ul', { class: 'small' }, a.lines.map((l) => h('li', null, t('friendly.line', { role: l.role, percent: l.percent })))),
-      h('p', { class: 'small' }, t('friendly.strong', { role: a.strongest })),
-      h('p', { class: 'small' }, t('friendly.weak', { role: a.weakest })),
+      a.perfect
+        ? h('p', { class: 'small' }, t('friendly.perfect'))
+        : [h('p', { class: 'small' }, t('friendly.strong', { role: a.strongest })),
+          h('p', { class: 'small' }, t('friendly.weak', { role: a.weakest }))],
       h('p', null, t(`friendly.tip.${match.result}`))));
   result.hidden = true;
   openModal({ title: t(key(theme, 'title')), body: [stage, result], actions: [{ label: t('friendly.close'), kind: 'primary' }], className: 'celebrate' });

@@ -88,9 +88,12 @@ export function simulateFriendly({ theme, power, minutes, day, n }) {
 export function analyze(lu, sim) {
   const lines = Object.values(lu.lines);
   const sorted = [...lines].sort((a, b) => b.strength - a.strength || a.role.localeCompare(b.role));
+  // Hepsi (neredeyse) tam güçteyse "en zayıf alan" diye bir şey yoktur.
+  const perfect = sorted[sorted.length - 1].strength >= 0.995;
   return {
-    strongest: sorted[0].role,
-    weakest: sorted[sorted.length - 1].role,
+    perfect,
+    strongest: perfect ? null : sorted[0].role,
+    weakest: perfect ? null : sorted[sorted.length - 1].role,
     lines: lines.map((l) => ({ role: l.role, percent: Math.round(l.strength * 100) })),
     gap: sim.score - sim.opp,
   };

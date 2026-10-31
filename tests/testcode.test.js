@@ -1,5 +1,9 @@
 import { describe, it, expect } from 'vitest';
 import { hashText, redeemHash, TEST_CODE_COINS } from '../src/core/testcode.js';
+import { applyAutoLineup } from '../src/core/testcode.js';
+import { defaultState } from '../src/core/storage.js';
+import { themeState } from '../src/core/economy.js';
+import { THEMES } from '../src/themes/index.js';
 
 describe('test kodu', () => {
   it('doğru kod 100000 para ekler, yanlış kod eklemez', async () => {
@@ -91,5 +95,20 @@ describe('futbolda efsane kadro', () => {
     const byId = new Map(theme.items.map((i) => [i.id, i]));
     expect(eq).toHaveLength(11);
     for (const id of eq) expect(byId.get(id).tier).toBe('legend');
+  });
+});
+
+import { analyze as analyzeMatch, matchStatus as matchStatusFor } from '../src/core/friendly.js';
+describe('analiz: kusursuz kadro', () => {
+  it('en iyi kadroda zayıf alan önerilmez', () => {
+    for (const theme of Object.values(THEMES)) {
+      const st = defaultState(Date.now());
+      themeState(st, theme.id, Date.now()).owned = theme.items.map((i) => i.id);
+      applyAutoLineup(st, theme, Date.now());
+      const lu = matchStatusFor(st, theme, Date.now()).lineup;
+      const a = analyzeMatch(lu, { score: 1, opp: 1 });
+      expect(a.perfect).toBe(true);
+      expect(a.weakest).toBeNull();
+    }
   });
 });
