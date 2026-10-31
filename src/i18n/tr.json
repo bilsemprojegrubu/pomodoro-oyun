@@ -376,39 +376,99 @@
     "noLoss": "Sonuç ne olursa olsun hiçbir şey kaybetmezsin."
   },
   "friendly": {
-    "title": "Hazırlık maçı",
-    "intro": "İlk 11'ini kurdun. İstediğin zaman maç yap; kazanırsan {n} para alırsın, kaybedersen hiçbir şey kaybetmezsin.",
-    "play": "Maça çık",
-    "left": "Bugün {done} / {allowed} maç oynadın",
+    "play": "Karşılaş",
+    "left": "Bugün {done} / {allowed} karşılaşma yaptın",
     "reason": {
       "lineup": "Önce ilk 11'ini tamamla ({filled} / {total}). Mağazadan eksik mevkilere oyuncu al.",
-      "needPomodoro": "Yeni maç hakkı için bir Pomodoro daha tamamla. Her maç, o gün yaptığın bir Pomodoro ile açılır.",
-      "dayLimit": "Bugünlük maçların bitti. Yarın yeniden oynayabilirsin."
+      "empty": "Önce mağazadan en az bir ürün al; sonra karşılaşabilirsin.",
+      "needPomodoro": "Yeni karşılaşma hakkı için bir Pomodoro daha tamamla. Her karşılaşma, o gün yaptığın bir Pomodoro ile açılır.",
+      "dayLimit": "Bugünlük karşılaşmaların bitti. Yarın yeniden oynayabilirsin."
     },
-    "ready": "Sahaya çıkılıyor...",
-    "modalTitle": "Hazırlık maçı",
-    "result": {
-      "win": "Kazandın!",
-      "draw": "Berabere",
-      "lose": "Bu maç olmadı"
-    },
-    "coins": "+{n} para",
-    "noCoins": "Bu sefer para yok, ama hiçbir şey de kaybetmedin.",
-    "scoreLine": "Takımın {mine} · {opp} rakip",
     "opponent": "Rakip: {name}",
-    "analysisTitle": "Maç analizi",
-    "power": "Takım gücün {mine}, rakibin gücü {opp}.",
-    "effort": "Bugünkü {time} odak çalışman da sahaya yansıdı.",
-    "lines": "Mevkilerin güç durumu",
+    "noCoins": "Bu sefer bonus yok, ama hiçbir şey de kaybetmedin.",
+    "analysisTitle": "Karşılaşma analizi",
+    "power": "Senin gücün {mine}, rakibin gücü {opp}.",
+    "effort": "Bugünkü {time} odak çalışman da sonuca yansıdı.",
+    "lines": "Alanlarının güç durumu",
     "line": "{role}: %{percent}",
-    "strong": "En güçlü mevkin: {role}.",
-    "weak": "En zayıf mevkin: {role}. Mağazadan bu mevkiye oyuncu almak takımı en çok güçlendirir.",
+    "strong": "En güçlü alanın: {role}.",
+    "weak": "En zayıf alanın: {role}. Mağazadan bu alana yatırım yapmak seni en çok güçlendirir.",
     "tip": {
       "win": "Böyle devam! Daha güçlü rakipler için yeni seviyeye ulaşmayı dene.",
-      "draw": "Çok az kaldı. Bir iki oyuncu daha ya da biraz daha odak, farkı yaratır.",
-      "lose": "Kaybetmek öğrenmektir. Zayıf mevkini güçlendir ve Pomodoro yap; sonra tekrar dene."
+      "draw": "Çok az kaldı. Bir iki ürün daha ya da biraz daha odak, farkı yaratır.",
+      "lose": "Kaybetmek öğrenmektir. Zayıf alanını güçlendir ve Pomodoro yap; sonra tekrar dene."
     },
-    "close": "Tamam"
+    "close": "Tamam",
+    "theme": {
+      "football": {
+        "title": "Hazırlık maçı",
+        "intro": "İlk 11'ini kurdun. İstediğin zaman maç yap; kazanırsan {n} {currency} bonus alırsın, kaybedersen hiçbir şey kaybetmezsin.",
+        "ready": "Düdük çalıyor...",
+        "rival": "",
+        "unit": "gol",
+        "result": {
+          "win": "Kazandın!",
+          "draw": "Berabere",
+          "lose": "Bu maç olmadı"
+        },
+        "summary": {
+          "win": "Maç özeti: Takımın sahada çok iyiydi, rakibi geçtin. Bonus senin!",
+          "draw": "Maç özeti: Çekişmeli bir karşılaşma, ikiniz de eşit kaldınız.",
+          "lose": "Maç özeti: Rakip bugün öndeydi. Kimse bir şey kaybetmedi; zayıf yönünü güçlendirip tekrar dene."
+        }
+      },
+      "cafe": {
+        "title": "Rakip kafe: günün özeti",
+        "intro": "Köşedeki rakip kafeyle bugün müşteri yarışındasın. Daha çok müşteri çekersen {n} {currency} bonus alırsın. Rakip öndeyse kimse bir şey kazanmaz ya da kaybetmez.",
+        "ready": "Gün kapanıyor, hesaplar yapılıyor...",
+        "rival": "Köşedeki Kahve Evi",
+        "unit": "müşteri",
+        "result": {
+          "win": "Bugünün kahramanı sensin!",
+          "draw": "Kafeler başa baş",
+          "lose": "Bugün rakip önde"
+        },
+        "summary": {
+          "win": "Günün özeti: Kafen {mine} müşteri ağırladı, rakip kafe {opp}. Kuyruklar sende, bonus senin!",
+          "draw": "Günün özeti: Kafen {mine}, rakip kafe {opp} müşteri ağırladı. Müşteriler iki kafeyi de sevdi.",
+          "lose": "Günün özeti: Rakip kafe {opp} müşteriyle önde, kafen {mine} müşteri ağırladı. Kimse bir şey kaybetmedi; yarın yeni bir gün."
+        }
+      },
+      "fashion": {
+        "title": "Rakip atölye: günün özeti",
+        "intro": "Rakip moda atölyesiyle bugün bir defile yarışındasın. Seyircinin beğenisini kazanırsan {n} {currency} bonus alırsın. Rakip öndeyse kimse bir şey kazanmaz ya da kaybetmez.",
+        "ready": "Perde açılıyor, seyirci alkışlıyor...",
+        "rival": "Atölye Lila",
+        "unit": "beğeni",
+        "result": {
+          "win": "Podyumun yıldızı sensin!",
+          "draw": "Şıklık berabere",
+          "lose": "Bugün rakip atölye önde"
+        },
+        "summary": {
+          "win": "Günün özeti: Koleksiyonun {mine} beğeni topladı, rakip atölye {opp}. Alkışlar sende, bonus senin!",
+          "draw": "Günün özeti: Koleksiyonun {mine}, rakip atölye {opp} beğeni topladı. İki koleksiyon da sevildi.",
+          "lose": "Günün özeti: Rakip atölye {opp} beğeniyle önde, senin koleksiyonun {mine} beğeni topladı. Kimse bir şey kaybetmedi; yeni bir tasarımla geri dön."
+        }
+      },
+      "shelter": {
+        "title": "Komşu barınak: günün özeti",
+        "intro": "Komşu barınakla bugün dostlarımıza yuva bulma yarışındasın. Daha çok ilgi görürsen {n} {currency} bonus alırsın. Komşu öndeyse kimse bir şey kazanmaz ya da kaybetmez; amaç dostlarımızın yuva bulması.",
+        "ready": "Ziyaretçiler geliyor, hesaplar yapılıyor...",
+        "rival": "Komşu Barınak",
+        "unit": "ilgi puanı",
+        "result": {
+          "win": "Bugün çok dost sevildi!",
+          "draw": "Bu gün berabere",
+          "lose": "Bugün komşu barınak önde"
+        },
+        "summary": {
+          "win": "Günün özeti: Barınağın {mine} ilgi puanı aldı, komşu barınak {opp}. Dostlarımız ilgi gördü, bonus senin!",
+          "draw": "Günün özeti: Barınağın {mine}, komşu barınak {opp} ilgi puanı aldı. İki barınağın dostları da çok sevildi.",
+          "lose": "Günün özeti: Komşu barınak {opp} ilgi puanıyla önde, senin barınağın {mine} aldı. Kimse bir şey kaybetmedi; yarın dostlarımız seni bekliyor."
+        }
+      }
+    }
   },
   "notify": {
     "doneTitle": "Pomodoro tamamlandı 🎉",

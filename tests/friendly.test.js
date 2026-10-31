@@ -3,6 +3,7 @@ import { defaultState } from '../src/core/storage.js';
 import { matchStatus, playMatch, simulateFriendly, supportsFriendly } from '../src/core/friendly.js';
 import { themeState, totalPower } from '../src/core/economy.js';
 import { THEMES } from '../src/themes/index.js';
+import tr from '../src/i18n/tr.json';
 
 const theme = THEMES.football;
 const now = new Date(2025, 0, 8, 12).getTime();
@@ -26,9 +27,33 @@ function ready(completed = 1) {
 }
 
 describe('hazırlık maçı', () => {
-  it('sadece mevkili (11\'li) temalarda var', () => {
-    expect(supportsFriendly(theme)).toBe(true);
-    expect(supportsFriendly(THEMES.cafe)).toBe(false);
+  it('dört temada da vardır; her temanın kendi metinleri tr.json içinde bulunur', () => {
+    for (const id of Object.keys(THEMES)) {
+      expect(supportsFriendly(THEMES[id])).toBe(true);
+      const tx = tr.friendly.theme[id];
+      for (const k of ['title', 'intro', 'ready', 'rival', 'unit']) expect(typeof tx[k]).toBe('string');
+      for (const r of ['win', 'draw', 'lose']) {
+        expect(tx.result[r].length).toBeGreaterThan(0);
+        expect(tx.summary[r].length).toBeGreaterThan(0);
+      }
+    }
+  });
+
+  it('kafe, moda ve barınakta ilk 11 şartı yok; en az bir ürün yeterli, alanlar kategorilerdir', () => {
+    for (const id of ['cafe', 'fashion', 'shelter']) {
+      const th = THEMES[id];
+      const st = defaultState(now);
+      st.daily['2025-01-08'] = { rewarded: 1, completed: 1, minutes: 25 };
+      expect(matchStatus(st, th, now).reason).toBe('empty');
+      themeState(st, id, now).owned = [th.items[0].id];
+      const s = matchStatus(st, th, now);
+      expect(s.ok).toBe(true);
+      expect(Object.keys(s.lineup.lines)).toEqual(th.categories.map((c) => c.name));
+      const out = playMatch(st, th, now);
+      expect(out.ok).toBe(true);
+      expect(out.match.analysis.lines).toHaveLength(th.categories.length);
+      expect(st.wallet.coins).toBeGreaterThanOrEqual(0);
+    }
   });
 
   it('ilk 11 eksikse oynanmaz', () => {

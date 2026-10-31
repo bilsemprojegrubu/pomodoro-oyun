@@ -1,4 +1,5 @@
-// Hazırlık maçı: Dünyam ekranındaki kart ve maç sonucu penceresi (kısa animasyon + analiz).
+// Günlük karşılaşma: Dünyam ekranındaki kart ve sonuç penceresi (kısa animasyon + günün özeti + analiz).
+// Futbolda hazırlık maçı, kafede rakip kafe, modada rakip atölye, barınakta komşu barınak.
 import { h, motionOn } from '../dom.js';
 import { t, fmtNumber, fmtMinutes } from '../../i18n/index.js';
 import { CONFIG } from '../../config.js';
@@ -8,20 +9,31 @@ import { confetti, countUp } from '../components/effects.js';
 import { play } from '../sound.js';
 import { goalsFor } from './weekly.js';
 
+const key = (theme, k) => `friendly.theme.${theme.id}.${k}`;
+const lower = (s) => s.toLocaleLowerCase('tr');
+const currencyName = (theme) => lower(theme.currency.name);
+
 function showMatch(ctx, theme, match) {
   const icon = match.result === 'win' ? '🏆' : match.result === 'draw' ? '🤝' : '🌱';
   const a = match.analysis;
+  const goals = theme.weeklyEvent.scoreStyle === 'goals';
+  const level = theme.levels.find((l) => l.opponentPower === match.opp) || theme.levels[0];
+  const rival = goals ? level.opponentName : t(key(theme, 'rival'));
   const stage = h('div', { class: 'stack center weekly-stage' },
     h('p', { class: 'emoji-big spin', 'aria-hidden': 'true' }, theme.icon),
-    h('p', null, t('friendly.ready')));
+    h('p', null, t(key(theme, 'ready'))));
   const coinEl = h('span', { class: 'count-up big-number' }, '0');
-  const level = theme.levels.find((l) => l.opponentPower === match.opp) || theme.levels[0];
-  const goals = goalsFor({ themeId: theme.id, week: `f${match.at}`, result: match.result });
+  const board = goals
+    ? h('p', { class: 'scoreboard', 'aria-label': t('weekly.scoreAria') }, goalsFor({ themeId: theme.id, week: `f${match.at}`, result: match.result }).join(' – '))
+    : h('div', { class: 'stack center' },
+        h('p', { class: 'scoreboard', 'aria-label': t('weekly.scoreAria') }, `${fmtNumber(match.score)} – ${fmtNumber(match.opp)}`),
+        h('p', { class: 'small muted' }, `${t('weekly.you')} · ${rival} (${t(key(theme, 'unit'))})`));
   const result = h('div', { class: 'stack center' },
     h('p', { class: 'emoji-big pop', 'aria-hidden': 'true' }, icon),
-    h('h3', null, t(`friendly.result.${match.result}`)),
-    h('p', { class: 'scoreboard', 'aria-label': t('weekly.scoreAria') }, goals.join(' – ')),
-    h('p', { class: 'small muted' }, t('friendly.opponent', { name: level.opponentName })),
+    h('h3', null, t(key(theme, `result.${match.result}`))),
+    board,
+    goals ? h('p', { class: 'small muted' }, t('friendly.opponent', { name: rival })) : null,
+    h('p', null, t(key(theme, `summary.${match.result}`), { mine: fmtNumber(match.score), opp: fmtNumber(match.opp) })),
     match.coins > 0
       ? h('p', { class: 'row', style: { justifyContent: 'center' } }, h('span', { 'aria-hidden': 'true' }, theme.currency.icon), '+', coinEl)
       : h('p', { class: 'small muted' }, t('friendly.noCoins')),
@@ -35,7 +47,7 @@ function showMatch(ctx, theme, match) {
       h('p', { class: 'small' }, t('friendly.weak', { role: a.weakest })),
       h('p', null, t(`friendly.tip.${match.result}`))));
   result.hidden = true;
-  openModal({ title: t('friendly.modalTitle'), body: [stage, result], actions: [{ label: t('friendly.close'), kind: 'primary' }], className: 'celebrate' });
+  openModal({ title: t(key(theme, 'title')), body: [stage, result], actions: [{ label: t('friendly.close'), kind: 'primary' }], className: 'celebrate' });
   const reveal = () => {
     stage.hidden = true;
     result.hidden = false;
@@ -47,7 +59,7 @@ function showMatch(ctx, theme, match) {
   else reveal();
 }
 
-/** Dünyam için kart; tema desteklemiyorsa null. */
+/** Dünyam için kart. */
 export function friendlyCard(ctx, theme) {
   if (!supportsFriendly(theme)) return null;
   const st = matchStatus(ctx.state, theme, Date.now());
@@ -62,11 +74,11 @@ export function friendlyCard(ctx, theme) {
     },
   }, t('friendly.play'));
   return h('div', { class: 'card stack' },
-    h('h2', null, `⚽ ${t('friendly.title')}`),
-    h('p', { class: 'small' }, t('friendly.intro', { n: CONFIG.friendly.winCoins })),
-    st.ok || st.reason === 'needPomodoro' || st.reason === 'dayLimit'
+    h('h2', null, `${theme.icon} ${t(key(theme, 'title'))}`),
+    h('p', { class: 'small' }, t(key(theme, 'intro'), { n: CONFIG.friendly.winCoins, currency: currencyName(theme) })),
+    st.reason === 'needPomodoro' || st.reason === 'dayLimit' || st.ok
       ? h('p', { class: 'small muted' }, t('friendly.left', { done: st.done, allowed: st.allowed }))
       : null,
-    st.ok ? null : h('p', { class: 'small muted' }, t(`friendly.reason.${st.reason}`, { filled: st.lineup ? st.lineup.filled : 0, total: st.lineup ? st.lineup.total : 11 })),
+    st.ok ? null : h('p', { class: 'small muted' }, t(`friendly.reason.${st.reason}`, { filled: st.lineup.filled, total: st.lineup.total })),
     btn);
 }

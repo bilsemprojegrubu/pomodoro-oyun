@@ -1,4 +1,4 @@
-// Hazırlık maçı (futbol). İlk 11 kurulunca oynanır; kazanınca küçük ödül, kaybedince kayıp yok.
+// Günlük karşılaşma: futbolda hazırlık maçı, kafede rakip kafe, modada rakip atölye, barınakta komşu barınak.
 // Para farm'lanamasın diye her maç için o gün tamamlanmış bir Pomodoro gerekir (günde en fazla 3 maç).
 import { CONFIG } from '../config.js';
 import { dayKey, seededRandom } from './dates.js';
@@ -7,32 +7,50 @@ import { equippedIds, levelInfo, themeState, totalPower } from './economy.js';
 const F = CONFIG.friendly;
 const W = CONFIG.weekly;
 
-/** Mevkili (11'li) oyuncu kategorisi; yoksa bu tema hazırlık maçını desteklemez. */
+/** Mevkili (11'li) oyuncu kategorisi (sadece futbol); diğer temalarda yok. */
 export function lineupCategory(theme) {
   return theme.categories.find((c) => c.roleSlots) || null;
 }
 
-/** Hazırlık maçı bu temada var mı? */
-export const supportsFriendly = (theme) => Boolean(lineupCategory(theme));
+/** Her temada bir rakiple günlük karşılaşma vardır. */
+export const supportsFriendly = (theme) => theme.categories.length > 0;
 
-/** Mevkiye göre sahadaki oyuncular ve güçleri. */
+const bestPower = (theme, pred) => Math.max(...theme.items.filter(pred).map((i) => i.power));
+
+/**
+ * Alanlara göre güç: futbolda mevkiler (kaleci, defans...), diğer temalarda kategoriler.
+ * strength: o alanın, en iyi ürünlerle dolu olsaydı ulaşacağı gücün kaçta kaçı (0-1).
+ */
 export function lineup(theme, ownedIds) {
   const cat = lineupCategory(theme);
-  if (!cat) return null;
+  const eq = equippedIds(theme, ownedIds);
   const byId = new Map(theme.items.map((i) => [i.id, i]));
-  const ids = equippedIds(theme, ownedIds)[cat.id] || [];
   const lines = {};
-  for (const role of Object.keys(cat.roleSlots)) {
-    const mine = ids.map((id) => byId.get(id)).filter((i) => i.role === role);
-    const best = Math.max(...theme.items.filter((i) => i.category === cat.id && i.role === role).map((i) => i.power));
-    const power = mine.reduce((a, i) => a + i.power, 0);
-    lines[role] = { role, count: mine.length, slots: cat.roleSlots[role], power, strength: mine.length ? power / (cat.roleSlots[role] * best) : 0 };
+  let filled = 0;
+  let total = 0;
+  if (cat) {
+    for (const [role, slots] of Object.entries(cat.roleSlots)) {
+      const mine = eq[cat.id].map((id) => byId.get(id)).filter((i) => i.role === role);
+      const best = bestPower(theme, (i) => i.category === cat.id && i.role === role);
+      const power = mine.reduce((a, i) => a + i.power, 0);
+      lines[role] = { role, count: mine.length, slots, power, strength: power / (slots * best) };
+      filled += mine.length;
+      total += slots;
+    }
+    return { total, filled, needsFull: true, lines };
   }
-  const total = Object.values(cat.roleSlots).reduce((a, b) => a + b, 0);
-  return { total, filled: ids.length, lines };
+  for (const c of theme.categories) {
+    const mine = eq[c.id].map((id) => byId.get(id));
+    const best = bestPower(theme, (i) => i.category === c.id);
+    const power = mine.reduce((a, i) => a + i.power, 0);
+    lines[c.name] = { role: c.name, count: mine.length, slots: c.slotLimit, power, strength: power / (c.slotLimit * best) };
+    filled += mine.length;
+    total += c.slotLimit;
+  }
+  return { total, filled, needsFull: false, lines };
 }
 
-/** Bugünkü maç durumu: oynanabilir mi, neden olmuyor? */
+/** Bugünkü karşılaşma durumu: oynanabilir mi, neden olmuyor? */
 export function matchStatus(state, theme, now) {
   const ts = themeState(state, theme.id, now);
   const lu = lineup(theme, ts.owned);
@@ -41,8 +59,8 @@ export function matchStatus(state, theme, now) {
   const completed = (state.daily[day] && state.daily[day].completed) || 0;
   const allowed = Math.min(F.maxPerDay, completed);
   let reason = null;
-  if (!lu) reason = 'unsupported';
-  else if (lu.filled < lu.total) reason = 'lineup';
+  if (lu.needsFull && lu.filled < lu.total) reason = 'lineup';
+  else if (lu.filled === 0) reason = 'empty';
   else if (done >= F.maxPerDay) reason = 'dayLimit';
   else if (done >= allowed) reason = 'needPomodoro';
   return { ok: !reason, reason, done, allowed, completed, lineup: lu };

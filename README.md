@@ -44,7 +44,7 @@ pomodoro-oyun/
 │   │   ├── antiCheat.js     Gizli sekme, saat hilesi, tek sayaç kilidi
 │   │   ├── economy.js       Ödül, günlük tavan, güç, seviye, satın alma
 │   │   ├── weekly.js        Haftalık olay (maç/festival/defile/sahiplendirme)
-│   │   ├── friendly.js      Hazırlık maçı (futbol, ilk 11 kurulunca)
+│   │   ├── friendly.js      Günlük karşılaşma (maç / rakip kafe / atölye / barınak)
 │   │   ├── streak.js        Esnek seri (haftada 1 dondurma)
 │   │   ├── stats.js         İstatistikler
 │   │   ├── achievements.js  32 rozet
@@ -73,7 +73,7 @@ Hepsi `src/config.js` içindedir:
 | Kademe fiyatları ve seviye kilitleri | `CONFIG.tiers` (+ `npm run uret`) |
 | Seviye eşikleri | `CONFIG.levelFractions` |
 | Haftalık olay (rastgelelik, ödüller, saat) | `CONFIG.weekly` |
-| Hazırlık maçı (ödül, günlük sınır) | `CONFIG.friendly` |
+| Günlük karşılaşma (ödül, günlük sınır) | `CONFIG.friendly` |
 | Anket aralığı, kontrol modu süresi | `CONFIG.research` |
 
 Fiyat ya da kademe değişirse tema dosyalarını yeniden üret: `npm run uret`. Denge testi (`tests/economy.test.js`) beklenen kazancı kontrol eder.

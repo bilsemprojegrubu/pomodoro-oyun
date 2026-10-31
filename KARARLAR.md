@@ -47,11 +47,13 @@ Talimatta net olmayan ya da birden fazla yolu olan yerlerde verilen kararlar. He
 - **Anket zorunlu değil:** onboarding'de "Şimdi değil" ile atlanabilir; o gün tekrar sorulmaz, ertesi gün nazikçe yeniden sorulur.
 - **Kontrol modu gizli:** Ayarlar → Hakkında'da sürüm yazısına 5 kez dokununca "Araştırma raporu" ekranında açılır. İlk 3 gün oyun/tema/mağaza/para kapalıdır, sonra kendiliğinden açılır; veri `mode: control | game` etiketiyle ayrılır.
 
-## Hazırlık maçı (futbol)
-- **Ne zaman:** İlk 11 (kaleci 1, defans 4, orta saha 3, forvet 3) kurulunca Dünyam'da "Maça çık" açılır; haftalık maçtan bağımsızdır.
-- **Ödül:** Kazanırsan 10 para. Kaybedersen ya da berabere kalırsan 0 — para kaybı yok, kazanç yok (`CONFIG.friendly`).
-- **Para sömürülmesin diye:** Her maç için o gün tamamlanmış bir Pomodoro gerekir, günde en fazla 3 maç. Sonuç gün + maç sırasına bağlıdır; yeniden deneyerek değişmez.
-- **Analiz:** Takım gücü ve rakip gücü, bugünkü odak süresinin etkisi, mevkilere göre güç yüzdesi, en güçlü/zayıf mevki ve öneri gösterilir. Kayıp bir "ceza" değil, öğrenme fırsatı olarak anlatılır.
+## Günlük karşılaşma (her temada)
+- **Futbol:** hazırlık maçı. İlk 11 (kaleci 1, defans 4, orta saha 3, forvet 3) kurulunca açılır.
+- **Kafe:** rakip kafe, "günün özeti" müşteri sayısı. **Moda:** rakip atölye, beğeni. **Barınak:** komşu barınak, ilgi puanı (amaç dostlarımıza yuva bulmak; rakip düşman değil, dost bir komşu).
+- **Ödül (hepsinde aynı):** Kazanırsan 10 birim bonus. Rakip öndeyse ya da berabere kalırsan 0 — ne kayıp ne kazanç; rakip de bir şey kazanmaz (`CONFIG.friendly`).
+- **Para sömürülmesin diye:** Her karşılaşma için o gün tamamlanmış bir Pomodoro gerekir, günde en fazla 3. Sonuç gün + sıraya bağlıdır; yeniden deneyerek değişmez.
+- **Analiz:** Senin gücün ve rakibin gücü, bugünkü odak süresinin etkisi, alanlara göre güç yüzdesi (futbolda mevkiler, diğerlerinde kategoriler), en güçlü/zayıf alan ve öneri. Kayıp "ceza" değil, öğrenme fırsatı olarak anlatılır.
+- **Metinler:** `tr.json` → `friendly.theme.<tema>`. Yeni tema eklenirse oraya da eklenmeli (test kontrol eder).
 
 ## Görsel ve erişilebilirlik
 - **Görseller:** ürünler için "kademe renkli kare + emoji" ya da kod ile çizilen karakter (SVG). Tek yerden: `src/assets/art.js`. Kademe sadece renkle değil, ikon + yazıyla da verilir.
