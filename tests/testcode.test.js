@@ -63,3 +63,16 @@ describe('test kodu ve hazırlık maçı', () => {
     expect(state.daily).toEqual({});
   });
 });
+
+import { lineup } from '../src/core/friendly.js';
+
+describe('alan yüzdeleri', () => {
+  it('en güçlü kadro her alanda %100 verir', () => {
+    for (const theme of Object.values(THEMES)) {
+      const state = defaultState(Date.now());
+      applyAutoLineup(state, theme);
+      const lu = lineup(theme, state.themes[theme.id].owned);
+      for (const l of Object.values(lu.lines)) expect(l.strength).toBeCloseTo(1, 5);
+    }
+  });
+});

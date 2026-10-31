@@ -15,11 +15,13 @@ export function lineupCategory(theme) {
 /** Her temada bir rakiple günlük karşılaşma vardır. */
 export const supportsFriendly = (theme) => theme.categories.length > 0;
 
-const bestPower = (theme, pred) => Math.max(...theme.items.filter(pred).map((i) => i.power));
+/** Oyunda gerçekten bulunan en iyi `slots` ürünün güç toplamı: o alanın ulaşabileceği en yüksek güç. */
+const bestSum = (theme, pred, slots) => theme.items.filter(pred).map((i) => i.power).sort((a, b) => b - a)
+  .slice(0, slots).reduce((a, b) => a + b, 0);
 
 /**
  * Alanlara göre güç: futbolda mevkiler (kaleci, defans...), diğer temalarda kategoriler.
- * strength: o alanın, en iyi ürünlerle dolu olsaydı ulaşacağı gücün kaçta kaçı (0-1).
+ * strength: o alanın, oyundaki en iyi ürünlerle dolu olsaydı ulaşacağı gücün kaçta kaçı (0-1). En iyi kadroyla 1 olur.
  */
 export function lineup(theme, ownedIds) {
   const cat = lineupCategory(theme);
@@ -31,9 +33,9 @@ export function lineup(theme, ownedIds) {
   if (cat) {
     for (const [role, slots] of Object.entries(cat.roleSlots)) {
       const mine = eq[cat.id].map((id) => byId.get(id)).filter((i) => i.role === role);
-      const best = bestPower(theme, (i) => i.category === cat.id && i.role === role);
+      const best = bestSum(theme, (i) => i.category === cat.id && i.role === role, slots);
       const power = mine.reduce((a, i) => a + i.power, 0);
-      lines[role] = { role, count: mine.length, slots, power, strength: power / (slots * best) };
+      lines[role] = { role, count: mine.length, slots, power, strength: power / best };
       filled += mine.length;
       total += slots;
     }
@@ -41,9 +43,9 @@ export function lineup(theme, ownedIds) {
   }
   for (const c of theme.categories) {
     const mine = eq[c.id].map((id) => byId.get(id));
-    const best = bestPower(theme, (i) => i.category === c.id);
+    const best = bestSum(theme, (i) => i.category === c.id, c.slotLimit);
     const power = mine.reduce((a, i) => a + i.power, 0);
-    lines[c.name] = { role: c.name, count: mine.length, slots: c.slotLimit, power, strength: power / (c.slotLimit * best) };
+    lines[c.name] = { role: c.name, count: mine.length, slots: c.slotLimit, power, strength: power / best };
     filled += mine.length;
     total += c.slotLimit;
   }
