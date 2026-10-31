@@ -104,3 +104,4 @@ Kafe, moda ve barınak temaları baştan sona gezildi (kadro, mağaza verisi, el
 - Yanlış eşya sabrı azaltır ve seriyi bozar. Sipariş, oyuncunun sahip olduğu eşyalardan çıkar; eşya aldıkça oyun zenginleşir.
 - Oyun puanı SADECE eğlence içindir: Pomodoro parasını ve seviyeyi etkilemez, böylece odaklanma ekonomisi bozulmaz. Araştırma kontrol modunda Dünyam zaten kapalıdır.
 - Kod: src/ui/components/serviceGame.js (oyun), scenes.js (stageFor), screens.css (.sg-*). Hareket azaltma ayarına uyar.
+- Zorluk seviyeye bağlı: seviye arttıkça sipariş büyür (2 seviyede +1 parça), tepsi 8'den 12 eşyaya çıkar, sabır 24 sn'den 12 sn'ye iner. Ekranda "Zorluk: n" görünür.

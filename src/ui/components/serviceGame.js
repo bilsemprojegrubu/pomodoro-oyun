@@ -5,6 +5,7 @@ import { h, fromHTML } from '../dom.js';
 import { characterArt } from '../../assets/art.js';
 import { propArt } from '../../assets/props.js';
 import { sceneFor, stageFor } from './scenes.js';
+import { levelInfo, totalPower } from '../../core/economy.js';
 
 const CFG = {
   cafe: { parts: [{ cat: 'menu', n: [1, 3] }], cust: 'cafe', play: 'Siparişleri hazırla', ask: 'Müşteri bunları istiyor:', done: 'Afiyet olsun!' },
@@ -12,8 +13,12 @@ const CFG = {
   fashion: { parts: [{ cat: 'fabrics', n: [1, 1] }, { cat: 'outfits', n: [1, 1] }], cust: 'model', play: 'Kombin hazırla', ask: 'Müşteri bu kumaş ve kıyafeti istiyor:', done: 'Harika görünüyor!' },
   shelter: { parts: [{ cat: 'animals', n: [1, 1] }, { cat: 'care', n: [1, 2] }], cust: 'cafe', play: 'Sahiplendirme oyunu', ask: 'Ziyaretçi bunları istiyor:', done: 'Yeni yuvasına gitti!' },
 };
-const PATIENCE = 22; // saniye
-const TRAY = 8;
+// Zorluk, temanın seviyesine göre artar: sipariş büyür, tepsi kalabalıklaşır, sabır kısalır.
+const diff = (idx) => ({
+  patience: Math.max(12, 24 - idx * 1.5),
+  extraNeed: Math.floor(idx / 2),
+  tray: Math.min(12, 8 + Math.floor(idx / 2) * 2),
+});
 
 const HEART = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21C4 14 2 9.500 2 7a5 5 0 0 1 10-1 5 5 0 0 1 10 1c0 2.500-2 7-10 14z" fill="#E4373D"/></svg>';
 const STAR = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2l3 6.800 7.400.7-5.600 4.900 1.700 7.300L12 17.800 5.500 21.700l1.700-7.300L1.600 9.500 9 8.800z" fill="#F2C230"/></svg>';
@@ -33,7 +38,7 @@ function iconOf(item, size = 64) {
 }
 
 /** Yeni sipariş: her bölümden sahip olunan eşyalar; tepsi = gerekenler + yanıltıcılar. */
-function makeOrder(theme, ts, cfg) {
+function makeOrder(theme, ts, cfg, d) {
   const owned = new Set(ts.owned);
   const need = [];
   const pool = [];
@@ -41,10 +46,10 @@ function makeOrder(theme, ts, cfg) {
     const mine = theme.items.filter((i) => i.category === part.cat && owned.has(i.id));
     if (!mine.length) continue;
     pool.push(...mine);
-    need.push(...shuffle(mine).slice(0, Math.min(mine.length, rnd(part.n[0], part.n[1]))));
+    need.push(...shuffle(mine).slice(0, Math.min(mine.length, rnd(part.n[0], part.n[1] + d.extraNeed))));
   }
   if (!need.length) return null;
-  const extra = shuffle(pool.filter((i) => !need.includes(i))).slice(0, Math.max(0, Math.min(TRAY, pool.length) - need.length));
+  const extra = shuffle(pool.filter((i) => !need.includes(i))).slice(0, Math.max(0, Math.min(d.tray, pool.length) - need.length));
   return { need, tray: shuffle([...need, ...extra]) };
 }
 
@@ -55,6 +60,9 @@ export function sceneBox(theme, ts) {
   if (!cfg || !live) return live;
   const box = h('div', { class: 'scene-box' });
   stopTimer();
+  const lvl = levelInfo(theme, totalPower(theme, ts.owned, ts));
+  const d = diff(lvl.index);
+  const PATIENCE = d.patience;
 
   const showLive = () => {
     stopTimer();
@@ -65,7 +73,7 @@ export function sceneBox(theme, ts) {
 
   const showGame = () => {
     stopTimer();
-    let order = makeOrder(theme, ts, cfg);
+    let order = makeOrder(theme, ts, cfg, d);
     let got = new Set();
     let left = PATIENCE;
     let busy = false;
@@ -82,12 +90,12 @@ export function sceneBox(theme, ts) {
       h('div', { class: 'sg-bar', role: 'progressbar', 'aria-label': 'Müşterinin sabrı' }, bar),
     ], `${theme.name}: servis oyunu`);
 
-    const refreshStats = () => stats.replaceChildren(`Mutlu müşteri: ${G.served} · Seri: ${G.streak} · Puan: ${G.score} · En iyi: ${G.best}`);
+    const refreshStats = () => stats.replaceChildren(`Zorluk: ${lvl.index + 1} · Mutlu müşteri: ${G.served} · Seri: ${G.streak} · Puan: ${G.score}`);
 
     const nextCustomer = () => {
       busy = false;
       reaction.replaceChildren();
-      order = makeOrder(theme, ts, cfg);
+      order = makeOrder(theme, ts, cfg, d);
       got = new Set();
       left = PATIENCE;
       custWrap.replaceChildren(fromHTML(characterArt(cfg.cust, rnd(0, 9), '', `sg${Math.random()}`, 96)));
