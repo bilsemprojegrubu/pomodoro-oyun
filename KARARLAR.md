@@ -92,8 +92,9 @@ Sekme değişince ekran 0,22 sn sağdan (ileri) ya da soldan (geri) hafifçe kay
 ## Diğer temaların denetimi
 Kafe, moda ve barınak temaları baştan sona gezildi (kadro, mağaza verisi, elle kadro, karşılaşma): hata çıkmadı. Düzeltilenler: sahne altındaki not artık "dokunarak değiştirebilirsin" diyor; kadro pencerelerindeki "oyuncu/oynasın" gibi futbola özel sözler tüm temalara uygun hale getirildi.
 
-## Kafe sahnesi (Dünyam)
-- Kafe temasında Dünyam'ın üstünde kafenin içi çizilir (`src/ui/components/cafeScene.js`): duvarda pencere ve duvar süsleri, tezgâhta ekipman ve vitrin (sahip olunan menü), tezgâh arkasında çalışanlar, zeminde mobilyalar.
-- Müşteriler kapıdan girer, tezgâhın önünde durup sahip olunan menüden sipariş balonu gösterir, sonra çıkar. Müşteri sayısı seviyeyle artar (en çok 4). Tüm çizimler özgündür; başka oyundan görsel alınmadı.
-- "Hareketi azalt" açıksa müşteriler sabit durur (`data-motion="off"`).
-- `dom.js` `h()` artık stil nesnesindeki `--özel` CSS değişkenlerini `setProperty` ile atar.
+## Dünyam sahneleri (dört tema)
+- Her temanın Dünyam ekranında çizili bir sahne var: kafe iç mekânı, futbol sahası, moda podyumu, hayvan barınağı (`src/ui/components/scenes.js`).
+- Görsellerde emoji ve piksel sanat yok: hepsi özgün, düz renkli vektör (SVG) çizimdir (`src/assets/props.js`). Mağaza/kadro karoları da aynı çizimleri kullanır.
+- Arkadaşın sitesinden hiçbir görsel alınmadı.
+- Kadro seçimi sahneye yansır (sadece slotlara giren ürünler çizilir). Hareket kapalıyken animasyonlar durur.
+- Düzeltme: karakter kıyafet/saç rengi seçiminde negatif indeks hatası giderildi (`>>>`).

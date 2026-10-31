@@ -136,23 +136,26 @@ body.focus-mode .ambient { position: fixed; inset: 0; border-radius: 0; }
 .tab-in-next { animation: tab-in-next 0.22s ease-out; }
 .tab-in-prev { animation: tab-in-prev 0.22s ease-out; }
 
-/* Kafe sahnesi */
-.cafe-scene { --s: 10; position: relative; width: 100%; aspect-ratio: 10 / 8; overflow: hidden; border-radius: var(--radius-l); border: 1px solid var(--border); container-type: inline-size;
-  background: linear-gradient(to bottom, #f3e1c4 0 54%, #b8804d 54% 100%); }
-.cafe-scene::after { content: ''; position: absolute; left: 0; right: 0; top: 68%; bottom: 0; background: repeating-linear-gradient(90deg, transparent 0 14%, rgb(0 0 0 / 8%) 14% 14.4%); pointer-events: none; }
-.cf-window { position: absolute; left: 4%; top: 6%; width: 22%; height: 34%; border: 0.9cqw solid #8a5a2f; border-radius: 6px; background: linear-gradient(#bfe6ff, #eaf7ff); display: grid; place-items: center; font-size: 8cqw; }
-.cf-em { position: absolute; transform: translate(-50%, -100%); line-height: 1; font-size: calc(var(--s) * 0.9vw); font-size: calc(var(--s) * 1cqw); font-family: 'Apple Color Emoji', 'Segoe UI Emoji', 'Noto Color Emoji', sans-serif; z-index: 3; }
-.cf-em.floor { z-index: 2; filter: drop-shadow(0 2px 2px rgb(0 0 0 / 30%)); }
-.cf-staff { position: absolute; left: 50%; top: 31%; width: 14%; transform: translateX(-50%); z-index: 1; }
-.cf-staff svg, .cf-cust svg { width: 100%; height: auto; display: block; }
-.cf-counter { position: absolute; left: 0; right: 0; top: 54%; height: 15%; z-index: 2; background: linear-gradient(#a2662e 0 14%, #7a4a22 14% 100%); border-top: 2px solid #c58a4f; box-shadow: 0 3px 6px rgb(0 0 0 / 25%); }
-.cf-case { position: absolute; left: 4%; right: 4%; top: 58.5%; height: 8%; z-index: 3; display: flex; gap: 2%; align-items: center; padding: 0 2%; border-radius: 6px; background: rgb(255 255 255 / 35%); border: 1px solid rgb(255 255 255 / 55%); font-size: calc(5vw * 0.9); font-size: 5cqw; line-height: 1; }
-.cf-cust { position: absolute; bottom: 1%; left: -16%; width: 13%; z-index: 4; animation: cust-walk 16s linear infinite; animation-delay: var(--delay, 0s); }
-.cf-cust svg { animation: cust-bob 0.6s ease-in-out infinite alternate; }
-.cf-bubble { position: absolute; left: 60%; top: -26%; padding: 0.6cqw 1.2cqw; border-radius: 3cqw; background: #fff; border: 1px solid #d9c3a5; font-size: 5cqw; line-height: 1.1; opacity: 0; animation: cust-bub 16s linear infinite; animation-delay: var(--delay, 0s); font-family: 'Apple Color Emoji', 'Segoe UI Emoji', 'Noto Color Emoji', sans-serif; }
+/* Dünyam sahneleri (vektör çizim) */
+.dscene { position: relative; width: 100%; aspect-ratio: 10 / 8; overflow: hidden; border-radius: var(--radius-l); border: 1px solid var(--border); container-type: inline-size; background: #ddd; }
+.sc-bg { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.sc-p { position: absolute; transform: translate(-50%, -100%); line-height: 0; pointer-events: none; }
+.sc-p.top { transform: translate(-50%, 0); }
+.sc-p svg { width: 100%; height: auto; display: block; }
+.sc-p.shadowed svg { filter: drop-shadow(0 1.5px 1.5px rgb(0 0 0 / 28%)); }
+.sc-p.hung::before { content: ''; position: absolute; left: 50%; top: -6cqw; height: 6cqw; width: 1px; background: #cfd3d9; }
+.sc-p.hung svg { transform-origin: 50% 0; animation: sc-sway 4s ease-in-out infinite alternate; animation-delay: var(--d, 0s); }
+.sc-p.bobbing svg { animation: sc-bob 0.9s ease-in-out infinite alternate; animation-delay: var(--d, 0s); }
+.sc-p.wander svg { animation: sc-wander var(--t, 7s) ease-in-out infinite alternate; animation-delay: var(--d, 0s); }
+.sc-cust { position: absolute; bottom: 1%; left: -16%; width: 13%; z-index: 4; line-height: 0; animation: cust-walk 16s linear infinite; animation-delay: var(--delay, 0s); }
+.sc-cust > svg { width: 100%; height: auto; display: block; animation: sc-bob 0.6s ease-in-out infinite alternate; }
+.sc-bubble { position: absolute; left: 62%; top: -30%; width: 38%; padding: 6%; border-radius: 50%; background: #fff; border: 1px solid #d9c3a5; opacity: 0; animation: cust-bub 16s linear infinite; animation-delay: var(--delay, 0s); box-shadow: 0 1px 3px rgb(0 0 0 / 15%); }
+.sc-bubble svg { width: 100%; height: auto; display: block; }
 @keyframes cust-walk { 0% { left: -16%; } 28% { left: var(--stop); } 62% { left: var(--stop); } 100% { left: 112%; } }
 @keyframes cust-bub { 0%, 29% { opacity: 0; transform: scale(0.6); } 34%, 58% { opacity: 1; transform: scale(1); } 62%, 100% { opacity: 0; } }
-@keyframes cust-bob { from { transform: translateY(0); } to { transform: translateY(-2%); } }
-:root[data-motion="off"] .cf-cust { animation: none; left: var(--stop); }
-:root[data-motion="off"] .cf-cust svg { animation: none; }
-:root[data-motion="off"] .cf-bubble { animation: none; opacity: 1; transform: none; }
+@keyframes sc-bob { from { transform: translateY(0); } to { transform: translateY(-3%); } }
+@keyframes sc-sway { from { transform: rotate(-3deg); } to { transform: rotate(3deg); } }
+@keyframes sc-wander { from { transform: translateX(-12%); } to { transform: translateX(12%); } }
+:root[data-motion="off"] .sc-cust { animation: none; left: var(--stop); }
+:root[data-motion="off"] .sc-cust > svg, :root[data-motion="off"] .sc-p svg { animation: none !important; }
+:root[data-motion="off"] .sc-bubble { animation: none; opacity: 1; transform: none; }

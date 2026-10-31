@@ -1,5 +1,6 @@
 // TÜM görseller buradan gelir: düz renkli, yuvarlak hatlı SVG + emoji. Tek bir stil, dört tema.
 // Başka çizimlerle değiştirmek için sadece bu dosyadaki fonksiyonları değiştirmen yeterli.
+import { propBody } from './props.js';
 import { esc } from '../ui/dom.js';
 
 export const TIER_COLORS = {
@@ -19,18 +20,8 @@ const OUTFITS = {
   mid: ['#27AE60', '#1E8E4E', '#6FCF97'],
   fwd: ['#EB5757', '#D6336C', '#F2994A'],
   staff: ['#4F5D75', '#2D3142', '#6C757D'],
-  cafe: ['#8D5A3B', '#C68B5E', '#5C3D2E'],
+  cafe: ['#C0563F', '#4A90D9', '#5FAE5B', '#8D5A3B'],
   model: ['#D6336C', '#9B51E0', '#F06595'],
-};
-
-// Rol -> küçük rozet emojisi
-const ROLE_EMOJI = {
-  Kaleci: '🧤', Defans: '🛡️', 'Orta saha': '🎽', Forvet: '🎯',
-  Fizyoterapist: '🩹', Kondisyoner: '💪', 'Veri analisti': '📊', 'Kaleci antrenörü': '🧤',
-  'Yardımcı antrenör': '📋', 'Teknik direktör': '🎓',
-  Barista: '☕', Garson: '🍽️', Kasiyer: '🧾', Pastacı: '🧁', Müzisyen: '🎵', 'Şef barista': '👨‍🍳',
-  Fotoğrafçı: '📷', 'Kafe müdürü': '⭐',
-  'Podyum modeli': '👠', 'Katalog modeli': '📸', 'Kapak modeli': '✨', Starlet: '🌟',
 };
 
 function hash(text) {
@@ -49,12 +40,11 @@ function hairPath(kind, color) {
 function avatar(style, n, role, id) {
   const h = hash(id);
   const skin = SKINS[(h + n) % SKINS.length];
-  const hair = HAIRS[(h >> 3) % HAIRS.length];
+  const hair = HAIRS[(h >>> 3) % HAIRS.length];
   const outfits = OUTFITS[style] || OUTFITS.staff;
-  const cloth = outfits[(h >> 5) % outfits.length];
+  const cloth = outfits[(h >>> 5) % outfits.length];
   const num = (h % 98) + 1;
   const isPlayer = ['gk', 'def', 'mid', 'fwd'].includes(style);
-  const badge = ROLE_EMOJI[role] || '';
   return `
     <path d="M24 96 Q24 64 50 64 Q76 64 76 96Z" fill="${cloth}"/>
     ${isPlayer ? `<text x="50" y="86" text-anchor="middle" font-size="15" font-weight="800" fill="#fff" font-family="system-ui,sans-serif">${num}</text>` : `<path d="M44 64 L50 74 L56 64Z" fill="#fff" opacity=".9"/>`}
@@ -62,7 +52,7 @@ function avatar(style, n, role, id) {
     ${hairPath(h % 3, hair)}
     <circle cx="44" cy="42" r="1.8" fill="#2B2B2B"/><circle cx="56" cy="42" r="1.8" fill="#2B2B2B"/>
     <path d="M45 48 Q50 52 55 48" stroke="#8A3B2A" stroke-width="1.8" fill="none" stroke-linecap="round"/>
-    ${badge ? `<text x="78" y="92" font-size="20" text-anchor="middle">${badge}</text>` : ''}`;
+    `;
 }
 
 /** Sadece karakter (arka plan kutusu yok): sahnelerde müşteri ve çalışan çizmek için. */
@@ -78,13 +68,16 @@ export function itemArt(item, size = 72) {
   const tier = TIER_COLORS[item.tier] || TIER_COLORS.bronze;
   const gid = `g${hash(item.id)}`;
   let inner;
-  if (item.art === 'emoji' || !item.art.startsWith('person-')) {
+  const drawn = propBody(item.id);
+  if (drawn) {
+    inner = `<svg x="14" y="12" width="72" height="72" viewBox="0 0 100 100">${drawn}</svg>`;
+  } else if (item.art === 'emoji' || !item.art.startsWith('person-')) {
     inner = `<text x="50" y="66" text-anchor="middle" font-size="52" font-family="'Apple Color Emoji','Segoe UI Emoji','Noto Color Emoji',sans-serif">${esc(item.emoji || '⭐')}</text>`;
   } else {
     const [, style, n] = item.art.split('-');
     inner = avatar(style, Number(n) || 0, item.role, item.id);
   }
-  const sparkle = item.tier === 'legend' ? `<text x="84" y="22" font-size="16" text-anchor="middle">✨</text>` : '';
+  const sparkle = item.tier === 'legend' ? `<path d="M84 8l3.2 7.8 8.3.7-6.3 5.5 1.9 8.2-7.100-4.400-7.100 4.400 1.900-8.200-6.300-5.500 8.300-.7z" fill="#fff" opacity=".95"/>` : '';
   return `<svg class="item-art" viewBox="0 0 100 100" width="${size}" height="${size}" role="img" aria-label="${esc(item.name)}" xmlns="http://www.w3.org/2000/svg">
     <defs><linearGradient id="${gid}" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="${tier.from}"/><stop offset="1" stop-color="${tier.to}"/></linearGradient></defs>
     <rect x="2" y="2" width="96" height="96" rx="24" fill="url(#${gid})" stroke="${tier.ring}" stroke-width="3"/>
