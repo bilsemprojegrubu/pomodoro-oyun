@@ -7,7 +7,7 @@ export function h(tag, props, ...children) {
     if (v === null || v === undefined || v === false) continue;
     if (k === 'class') el.className = v;
     else if (k === 'dataset') Object.assign(el.dataset, v);
-    else if (k === 'style' && typeof v === 'object') Object.assign(el.style, v);
+    else if (k === 'style' && typeof v === 'object') { for (const [p, val] of Object.entries(v)) { if (p.startsWith('--')) el.style.setProperty(p, val); else el.style[p] = val; } }
     else if (k === 'html') el.innerHTML = v; // Sadece güvenilir (kendi ürettiğimiz) SVG metinleri için
     else if (k.startsWith('on') && typeof v === 'function') el.addEventListener(k.slice(2).toLowerCase(), v);
     else if (k === 'value' || k === 'checked' || k === 'disabled' || k === 'selected') el[k] = v;

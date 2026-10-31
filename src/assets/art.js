@@ -65,6 +65,11 @@ function avatar(style, n, role, id) {
     ${badge ? `<text x="78" y="92" font-size="20" text-anchor="middle">${badge}</text>` : ''}`;
 }
 
+/** Sadece karakter (arka plan kutusu yok): sahnelerde müşteri ve çalışan çizmek için. */
+export function characterArt(style, n, role, id, size = 64) {
+  return `<svg class="char-art" viewBox="20 10 60 88" width="${size}" height="${Math.round(size * 88 / 60)}" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">${avatar(style, n, role, id)}</svg>`;
+}
+
 /**
  * Ürün görseli (SVG metni). size: piksel.
  * art alanı "emoji" ise item.emoji kullanılır; "person-<stil>-<n>" ise karakter çizilir.

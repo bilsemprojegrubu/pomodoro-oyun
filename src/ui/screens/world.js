@@ -5,6 +5,7 @@ import { itemArt, emptySlotArt } from '../../assets/art.js';
 import { benchPick, equippedIds, isManual, levelInfo, resetPicks, setFormation, slotGroup, slotsOf, swapPick, themeState, totalPower } from '../../core/economy.js';
 import { openModal } from '../components/modal.js';
 import { friendlyCard } from './friendly.js';
+import { cafeScene } from '../components/cafeScene.js';
 
 // Son satın alınan ürün (sahneye animasyonla gelsin diye)
 let justBought = null;
@@ -176,6 +177,7 @@ export function mount(root, ctx) {
 
   root.append(h('div', { class: 'stack' },
     header,
+    theme.id === 'cafe' ? cafeScene(theme, ts) : null,
     ts.owned.length === 0
       ? h('div', { class: 'card empty-state' },
           h('p', { class: 'emoji-big', 'aria-hidden': 'true' }, theme.icon),
