@@ -65,7 +65,7 @@ export function matchStatus(state, theme, now) {
   else if (lu.filled === 0) reason = 'empty';
   else if (!bonus && done >= F.maxPerDay) reason = 'dayLimit';
   else if (done >= allowed) reason = 'needPomodoro';
-  return { ok: !reason, reason, done, allowed, completed, lineup: lu };
+  return { ok: !reason, reason, done, allowed, completed, unlimited: !!bonus, lineup: lu };
 }
 
 /** Saf hesap: aynı gün + aynı maç sırası her zaman aynı sonucu verir. */

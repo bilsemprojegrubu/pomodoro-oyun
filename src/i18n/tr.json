@@ -392,6 +392,7 @@
   "friendly": {
     "play": "Karşılaş",
     "left": "Bugün {done} / {allowed} karşılaşma yaptın",
+    "leftTest": "Bugün {done} karşılaşma yaptın (test modu: sınırsız)",
     "reason": {
       "lineup": "Önce ilk 11'ini tamamla ({filled} / {total}). Mağazadan eksik mevkilere oyuncu al.",
       "empty": "Önce mağazadan en az bir ürün al; sonra karşılaşabilirsin.",
@@ -401,7 +402,7 @@
     "opponent": "Rakip: {name}",
     "noCoins": "Bu sefer bonus yok, ama hiçbir şey de kaybetmedin.",
     "analysisTitle": "Karşılaşma analizi",
-    "power": "Senin gücün {mine}, rakibin gücü {opp}.",
+    "power": "Takım gücün {team}. Bu maçtaki performansın {mine} (bugünkü çalışman ve maçın şansı dahil). Rakibin gücü {opp}.",
     "effort": "Bugünkü {time} odak çalışman da sonuca yansıdı.",
     "lines": "Alanlarının güç durumu",
     "line": "{role}: %{percent}",

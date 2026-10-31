@@ -39,7 +39,7 @@ function showMatch(ctx, theme, match) {
       : h('p', { class: 'small muted' }, t('friendly.noCoins')),
     h('div', { class: 'card stack', style: { textAlign: 'left' } },
       h('h4', null, t('friendly.analysisTitle')),
-      h('p', null, t('friendly.power', { mine: fmtNumber(match.score), opp: fmtNumber(match.opp) })),
+      h('p', null, t('friendly.power', { team: fmtNumber(match.power), mine: fmtNumber(match.score), opp: fmtNumber(match.opp) })),
       match.minutes > 0 ? h('p', { class: 'small muted' }, t('friendly.effort', { time: fmtMinutes(match.minutes) })) : null,
       h('p', { class: 'small' }, t('friendly.lines')),
       h('ul', { class: 'small' }, a.lines.map((l) => h('li', null, t('friendly.line', { role: l.role, percent: l.percent })))),
@@ -77,7 +77,7 @@ export function friendlyCard(ctx, theme) {
     h('h2', null, `${theme.icon} ${t(key(theme, 'title'))}`),
     h('p', { class: 'small' }, t(key(theme, 'intro'), { n: CONFIG.friendly.winCoins, currency: currencyName(theme) })),
     st.reason === 'needPomodoro' || st.reason === 'dayLimit' || st.ok
-      ? h('p', { class: 'small muted' }, t('friendly.left', { done: st.done, allowed: st.allowed }))
+      ? h('p', { class: 'small muted' }, (st.unlimited ? t('friendly.leftTest', { done: st.done }) : t('friendly.left', { done: st.done, allowed: st.allowed })))
       : null,
     st.ok ? null : h('p', { class: 'small muted' }, t(`friendly.reason.${st.reason}`, { filled: st.lineup.filled, total: st.lineup.total })),
     btn);
