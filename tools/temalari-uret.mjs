@@ -165,7 +165,7 @@ const football = {
     focusHint: 'Antrenman sürüyor…',
     breakHint: 'Soyunma odasında mola zamanı.',
     completed: ['Antrenman tamam! Takım güçleniyor.', 'Harika bir seans: formda kalmaya devam!', 'Bir antrenman daha cebinde.'],
-    sceneNote: 'Slotlara en güçlü oyuncuların otomatik girer.',
+    sceneNote: 'Slotlara en güçlü oyuncuların otomatik girer; dokunarak değiştirebilirsin.',
   },
 };
 
@@ -272,7 +272,7 @@ const cafe = {
     focusHint: 'Kahve demleniyor…',
     breakHint: 'Bir fincan mola zamanı.',
     completed: ['Bir fincan daha demlendi, kafen büyüyor!', 'Harika seans: müşteriler memnun.', 'Kasa dolmaya devam ediyor.'],
-    sceneNote: 'Slotlara en popüler ürünlerin otomatik girer.',
+    sceneNote: 'Slotlara en popüler ürünlerin otomatik girer; dokunarak değiştirebilirsin.',
   },
 };
 
@@ -377,7 +377,7 @@ const fashion = {
     focusHint: 'Tasarım üzerinde çalışılıyor…',
     breakHint: 'Terzi arası: biraz esne.',
     completed: ['Bir parça daha tamamlandı, koleksiyon büyüyor!', 'Harika seans: stilin gelişiyor.', 'Atölye parlıyor.'],
-    sceneNote: 'Slotlara en güçlü parçalar otomatik girer.',
+    sceneNote: 'Slotlara en güçlü parçalar otomatik girer; dokunarak değiştirebilirsin.',
   },
 };
 
@@ -482,7 +482,7 @@ const shelter = {
     focusHint: 'Dostlarımız mışıl mışıl uyuyor…',
     breakHint: 'Dostlarla kısa bir mola.',
     completed: ['Dostlarımızın karnı doydu, teşekkürler!', 'Harika seans: barınak daha mutlu.', 'Kuyruklar sallanıyor!'],
-    sceneNote: 'Slotlara en mutlu dostların otomatik girer.',
+    sceneNote: 'Slotlara en mutlu dostların otomatik girer; dokunarak değiştirebilirsin.',
   },
 };
 

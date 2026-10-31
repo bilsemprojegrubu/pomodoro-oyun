@@ -88,3 +88,6 @@ Tüm alanlar %100 iken "en zayıf alan / yatırım yap" önerisi gösterilmez; y
 
 ## Sekme geçiş animasyonu
 Sekme değişince ekran 0,22 sn sağdan (ileri) ya da soldan (geri) hafifçe kayarak belirir. "Hareketi azalt" açıksa ya da cihaz azaltılmış hareket istiyorsa animasyon kapanır.
+
+## Diğer temaların denetimi
+Kafe, moda ve barınak temaları baştan sona gezildi (kadro, mağaza verisi, elle kadro, karşılaşma): hata çıkmadı. Düzeltilenler: sahne altındaki not artık "dokunarak değiştirebilirsin" diyor; kadro pencerelerindeki "oyuncu/oynasın" gibi futbola özel sözler tüm temalara uygun hale getirildi.
