@@ -45,3 +45,21 @@ describe('otomatik en güçlü kadro', () => {
     expect(state.wallet.coins).toBe(0);
   });
 });
+
+import { matchStatus, playMatch } from '../src/core/friendly.js';
+
+describe('test kodu ve hazırlık maçı', () => {
+  it('kod girilince Pomodoro yapılmamış olsa da günde 3den fazla maç oynanır', async () => {
+    const theme = THEMES.football;
+    const now = Date.now();
+    const state = defaultState(now);
+    applyAutoLineup(state, theme, now);
+    expect(matchStatus(state, theme, now).reason).toBe('needPomodoro');
+    redeemHash(state, await hashText('Oyb160512.'));
+    for (let i = 0; i < 6; i++) {
+      expect(matchStatus(state, theme, now).ok).toBe(true);
+      expect(playMatch(state, theme, now).ok).toBe(true);
+    }
+    expect(state.daily).toEqual({});
+  });
+});

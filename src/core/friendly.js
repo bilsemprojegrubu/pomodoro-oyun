@@ -56,12 +56,14 @@ export function matchStatus(state, theme, now) {
   const lu = lineup(theme, ts.owned);
   const day = dayKey(now);
   const done = (ts.friendlies || []).filter((m) => m.day === day).length;
-  const completed = (state.daily[day] && state.daily[day].completed) || 0;
-  const allowed = Math.min(F.maxPerDay, completed);
+  // Test kodu girilmişse sanki o kadar Pomodoro yapılmış gibi sayılır ve günlük sınır uygulanmaz.
+  const bonus = (state.settings && state.settings.testBonusPomodoros) || 0;
+  const completed = ((state.daily[day] && state.daily[day].completed) || 0) + bonus;
+  const allowed = bonus ? completed : Math.min(F.maxPerDay, completed);
   let reason = null;
   if (lu.needsFull && lu.filled < lu.total) reason = 'lineup';
   else if (lu.filled === 0) reason = 'empty';
-  else if (done >= F.maxPerDay) reason = 'dayLimit';
+  else if (!bonus && done >= F.maxPerDay) reason = 'dayLimit';
   else if (done >= allowed) reason = 'needPomodoro';
   return { ok: !reason, reason, done, allowed, completed, lineup: lu };
 }
