@@ -66,3 +66,8 @@ Talimatta net olmayan ya da birden fazla yolu olan yerlerde verilen kararlar. He
 ## Kaydırarak sekme değiştirme
 - Sola kaydır: sonraki sekme, sağa kaydır: önceki sekme (Odak → Dünyam → Mağaza → İstatistik → Ayarlar). Baştan sona dönmez, uçta durur.
 - Yanlışlıkla tetiklenmesin diye: en az 70 px, yataya belirgin ağırlıklı, 0,7 sn'den kısa olmalı. Yazı kutusu, kaydırıcı, yatay kayan alanlar ve açık pencere üstünde çalışmaz. Kontrol modunda gizli sekmeler atlanır.
+
+## Test kodu (geçici)
+- Ayarlar'da "Test kodu" bölümü: doğru kod girilince 100.000 para ekler, her girişte tekrar verir. Amaç siteyi hızlı denemek (örn. futbolcu almak için dakikalarca beklememek).
+- Kod düz yazı olarak değil SHA-256 özeti olarak dosyada durur (`src/core/testcode.js`). Bu kodu gizli tutmaz: kodu bilen herkes kullanabilir, site açık olduğu için isteyen kodu kırabilir. Bu yüzden yalnızca test için; yayına açık kullanımdan önce kaldırılmalı.
+- İstatistikteki "toplam kazanılan para"ya eklenmez. Kaldırma: `testcode.js`, settings.js'deki bölüm, tr.json'daki `testCode` bloğu.

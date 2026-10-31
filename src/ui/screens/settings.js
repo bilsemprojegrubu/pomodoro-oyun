@@ -9,6 +9,7 @@ import { toast } from '../components/toast.js';
 import { ask as askNotify, supported as notifySupported } from '../notify.js';
 import { themeState } from '../../core/economy.js';
 import { defaultState } from '../../core/storage.js';
+import { hashText, redeemHash } from '../../core/testcode.js';
 
 let versionTaps = 0;
 
@@ -106,6 +107,17 @@ export function mount(root, ctx) {
     ctx.go('welcome');
   }
 
+  async function useTestCode() {
+    const box = document.getElementById('tcode');
+    const text = (box && box.value || '').trim();
+    if (!text) return;
+    let hash = '';
+    try { hash = await hashText(text); } catch { toast(t('testCode.unsupported')); return; }
+    let result = { ok: false };
+    store.update((x) => { result = redeemHash(x, hash); });
+    toast(result.ok ? t('testCode.ok', { n: result.coins }) : t('testCode.bad'));
+  }
+
   function render() {
     const s = store.get();
     const st = s.settings;
@@ -133,6 +145,11 @@ export function mount(root, ctx) {
         chipRow(t('settings.fontSize'), CONFIG.fontScales, st.fontScale, (v) => set((x) => { x.fontScale = v; }), (v) => t(`settings.font.${String(v).replace('.', '_')}`))),
       section(t('settings.health'),
         toggleRow('slp', t('settings.sleep'), t('settings.sleepDesc'), st.sleepReminder, (v) => set((x) => { x.sleepReminder = v; }))),
+      section(t('testCode.title'),
+        h('div', { class: 'field' }, h('label', { for: 'tcode' }, t('testCode.label')),
+          h('input', { class: 'input', id: 'tcode', type: 'password', autocomplete: 'off', autocapitalize: 'off', spellcheck: 'false', placeholder: t('testCode.placeholder') }),
+          h('p', { class: 'small muted' }, t('testCode.desc'))),
+        h('button', { type: 'button', class: 'btn btn-outline', onClick: useTestCode }, t('testCode.button'))),
       section(t('settings.data'),
         h('p', { class: 'small muted' }, t('settings.dataDesc')),
         h('div', { class: 'row-wrap' },

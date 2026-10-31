@@ -282,6 +282,16 @@
     "skip": "Şimdi değil",
     "thanks": "Teşekkürler! 💚"
   },
+  "testCode": {
+    "title": "Test kodu",
+    "label": "Kod",
+    "placeholder": "Kodu yaz",
+    "desc": "Siteyi hızlı denemek içindir. Doğru kod para ekler.",
+    "button": "Kodu kullan",
+    "ok": "Kod kabul edildi: +{n} para 🪙",
+    "bad": "Kod yanlış.",
+    "unsupported": "Bu tarayıcı kodu denetleyemedi."
+  },
   "settings": {
     "title": "Ayarlar",
     "theme": "Tema",
