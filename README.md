@@ -54,7 +54,7 @@ pomodoro-oyun/
 │   ├── themes/              football/cafe/fashion/shelter .json  (+ index.js)
 │   ├── ui/
 │   │   ├── screens/         odak, dünyam, mağaza, istatistik, ayarlar, araştırma, hoş geldin, haftalık
-│   │   ├── components/      modal, toast, konfeti, üst şerit, alt menü, tema seçici, anket
+│   │   ├── components/      modal, toast, konfeti, üst şerit, alt menü, tema seçici, kaydırma (swipe)
 │   │   └── styles/          tokens.css (tasarım sistemi), base, components, screens, theme-*.css
 │   ├── i18n/tr.json         Tüm arayüz metinleri
 │   └── assets/art.js        Tüm görseller (SVG + emoji) tek yerde

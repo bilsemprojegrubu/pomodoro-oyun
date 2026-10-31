@@ -62,3 +62,7 @@ Talimatta net olmayan ya da birden fazla yolu olan yerlerde verilen kararlar. He
 - **Sade mod:** odak sırasında alt menü ve üst şerit solar; mola sırasında menü geri gelir (kazandığın parayı harcayabilmen için).
 - **Geniş ekranda alt menü sol şeride dönüşür.**
 - **Bildirim izni sadece kullanıcı ayarı açınca istenir.**
+
+## Kaydırarak sekme değiştirme
+- Sola kaydır: sonraki sekme, sağa kaydır: önceki sekme (Odak → Dünyam → Mağaza → İstatistik → Ayarlar). Baştan sona dönmez, uçta durur.
+- Yanlışlıkla tetiklenmesin diye: en az 70 px, yataya belirgin ağırlıklı, 0,7 sn'den kısa olmalı. Yazı kutusu, kaydırıcı, yatay kayan alanlar ve açık pencere üstünde çalışmaz. Kontrol modunda gizli sekmeler atlanır.

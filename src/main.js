@@ -22,6 +22,7 @@ import { BADGES } from './core/achievements.js';
 import { setSoundEnabled } from './ui/sound.js';
 import { show as showNotification } from './ui/notify.js';
 import { renderTopbar } from './ui/components/topbar.js';
+import { enableSwipe } from './ui/components/swipe.js';
 import { renderNav } from './ui/components/nav.js';
 import { toast } from './ui/components/toast.js';
 import { showCompletion, showInterrupted } from './ui/components/celebration.js';
@@ -270,6 +271,13 @@ function showNextEvent() {
     showNextEvent();
   });
 }
+
+// Sağa/sola kaydırarak sekme değiştir.
+enableSwipe({
+  current: () => (route.name === 'welcome' ? null : (TAB_OF[route.name] || route.name)),
+  control: () => ctx.isControl(),
+  go: (id) => { location.hash = `#/${id}`; },
+});
 
 // ---------------- Başlat ----------------
 applySettings();
