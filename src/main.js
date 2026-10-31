@@ -23,7 +23,7 @@ import { setSoundEnabled } from './ui/sound.js';
 import { show as showNotification } from './ui/notify.js';
 import { renderTopbar } from './ui/components/topbar.js';
 import { enableSwipe } from './ui/components/swipe.js';
-import { renderNav } from './ui/components/nav.js';
+import { renderNav, TABS } from './ui/components/nav.js';
 import { toast } from './ui/components/toast.js';
 import { showCompletion, showInterrupted } from './ui/components/celebration.js';
 import { showWeekly } from './ui/screens/weekly.js';
@@ -204,8 +204,24 @@ function mountScreen(force = false) {
   if (force) window.scrollTo(0, y);
 }
 
+let lastTab = null;
+
+/** Sekme değişince ekranı kısa süre sağdan/soldan kayarak göster (azaltılmış harekette CSS kapatır). */
+function animateTab() {
+  const tab = TAB_OF[route.name] || route.name;
+  const ids = TABS.map((x) => x.id);
+  if (lastTab && lastTab !== tab && ids.includes(tab) && ids.includes(lastTab)) {
+    const dir = ids.indexOf(tab) > ids.indexOf(lastTab) ? 'next' : 'prev';
+    dom.main.classList.remove('tab-in-next', 'tab-in-prev');
+    void dom.main.offsetWidth; // animasyonu yeniden başlat
+    dom.main.classList.add(`tab-in-${dir}`);
+  }
+  lastTab = tab;
+}
+
 function navigate() {
   route = resolveRoute();
+  animateTab();
   renderChrome();
   mountScreen(true);
   window.scrollTo(0, 0);

@@ -85,3 +85,6 @@ Tüm alanlar %100 iken "en zayıf alan / yatırım yap" önerisi gösterilmez; y
 - Elle kadroda yeni alınan ürün, o mevkide boş yer varsa kadroya girer; yoksa yedekte kalır. Diziliş değişince kotaya sığdırılır, boşlar en güçlülerle dolar.
 - Seviye eşikleri 4-3-3'e göre hesaplı; elle kadro gücü düşürebilir (kullanıcı tercihi).
 - Test modu "otomatik kur" elle seçimleri siler ve her dizilişe yetecek oyuncuyu verir.
+
+## Sekme geçiş animasyonu
+Sekme değişince ekran 0,22 sn sağdan (ileri) ya da soldan (geri) hafifçe kayarak belirir. "Hareketi azalt" açıksa ya da cihaz azaltılmış hareket istiyorsa animasyon kapanır.
