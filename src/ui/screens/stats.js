@@ -97,8 +97,7 @@ function summary(ctx) {
       h('h2', { id: 'st' }, t('stats.streak')),
       h('p', null, `🔥 ${t('stats.streakNow', { n: streak })} · ${t('stats.streakBest', { n: s.streak.best })}`),
       h('p', { class: 'small muted' }, `🧊 ${t('stats.freezeLeft', { n: Math.max(0, freezeLeft(s.streak, today)) })}`),
-      h('p', { class: 'small muted' }, t('stats.streakNote'))),
-    h('a', { class: 'btn btn-outline btn-block', href: '#/research' }, `🔬 ${t('stats.researchLink')}`));
+      h('p', { class: 'small muted' }, t('stats.streakNote'))));
 }
 
 function badges(ctx) {

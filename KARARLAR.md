@@ -44,7 +44,7 @@ Talimatta net olmayan ya da birden fazla yolu olan yerlerde verilen kararlar. He
 - **CSV ayracı `;` + UTF-8 BOM** — Türkçe yerel ayarlı Excel'de çift tıkla düzgün açılır. Tek dosyada hem oturumlar hem anketler (`tur` sütunu). Hücreler `= + - @` ile başlıyorsa başa `'` eklenir (formül enjeksiyonuna karşı).
 - **CSV'ye görev adının sadece "ders" kısmı** (tireden öncesi) yazılır — görev adına yanlışlıkla kişisel bilgi yazılsa bile dışarı çıkmaz.
 - **Katılımcı kodu** sadece harf/rakam/`_`/`-`, en çok 12 karakter.
-- **Anket kaldırıldı:** site kâr amacı gütmeyen bir katkı sitesi, kanıt toplamak gerekmiyor. Açılışta ve 14 gün sonra anket sorulmaz. Araştırma modülü kodda duruyor ama kullanıcıya görünmüyor (sürüm numarasına basarak açılan gizli bölüm).
+- **Anket kaldırıldı:** site kâr amacı gütmeyen bir katkı sitesi, kanıt toplamak gerekmiyor. Açılışta ve 14 gün sonra anket sorulmaz. Araştırma modülü kodda duruyor ama kullanıcıya görünmüyor (sürüm numarasına basarak açılan gizli bölüm). Ayarlar ve İstatistik ekranlarındaki Araştırma bağlantıları da kaldırıldı.
 - **Kontrol modu gizli:** Ayarlar → Hakkında'da sürüm yazısına 5 kez dokununca "Araştırma raporu" ekranında açılır. İlk 3 gün oyun/tema/mağaza/para kapalıdır, sonra kendiliğinden açılır; veri `mode: control | game` etiketiyle ayrılır.
 
 ## Günlük karşılaşma (her temada)
