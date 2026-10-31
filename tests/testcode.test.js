@@ -76,3 +76,20 @@ describe('alan yüzdeleri', () => {
     }
   });
 });
+
+describe('futbolda efsane kadro', () => {
+  it('her mevkide kadroyu dolduracak kadar efsane oyuncu vardır ve hepsi kadroya girer', () => {
+    const theme = THEMES.football;
+    const cat = theme.categories.find((c) => c.roleSlots);
+    for (const [role, slots] of Object.entries(cat.roleSlots)) {
+      const legends = theme.items.filter((i) => i.category === cat.id && i.role === role && i.tier === 'legend');
+      expect(legends.length).toBeGreaterThanOrEqual(slots);
+    }
+    const state = defaultState(Date.now());
+    applyAutoLineup(state, theme);
+    const eq = equippedIds(theme, state.themes.football.owned)[cat.id];
+    const byId = new Map(theme.items.map((i) => [i.id, i]));
+    expect(eq).toHaveLength(11);
+    for (const id of eq) expect(byId.get(id).tier).toBe('legend');
+  });
+});

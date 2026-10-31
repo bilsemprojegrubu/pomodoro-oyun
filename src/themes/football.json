@@ -28,35 +28,35 @@
       "name": "Amatör Lig",
       "requiredPower": 0,
       "opponentName": "Mahalle Gençlik",
-      "opponentPower": 36
+      "opponentPower": 46
     },
     {
       "id": 2,
       "name": "3. Lig",
-      "requiredPower": 60,
+      "requiredPower": 76,
       "opponentName": "Çarşı Spor",
-      "opponentPower": 122
+      "opponentPower": 156
     },
     {
       "id": 3,
       "name": "2. Lig",
-      "requiredPower": 164,
+      "requiredPower": 210,
       "opponentName": "Liman Atletik",
-      "opponentPower": 253
+      "opponentPower": 325
     },
     {
       "id": 4,
       "name": "1. Lig",
-      "requiredPower": 313,
+      "requiredPower": 402,
       "opponentName": "Dağ Yıldızları",
-      "opponentPower": 429
+      "opponentPower": 551
     },
     {
       "id": 5,
       "name": "Süper Lig",
-      "requiredPower": 507,
+      "requiredPower": 650,
       "opponentName": "Kıta Şampiyonları",
-      "opponentPower": 629
+      "opponentPower": 806
     }
   ],
   "categories": [
@@ -502,6 +502,94 @@
       "art": "person-fwd-2"
     },
     {
+      "id": "p33",
+      "category": "players",
+      "name": "Doğa Kaplan",
+      "tier": "legend",
+      "price": 4000,
+      "power": 67,
+      "minLevel": 4,
+      "role": "Kaleci",
+      "art": "person-gk-3"
+    },
+    {
+      "id": "p34",
+      "category": "players",
+      "name": "Barış Çelikel",
+      "tier": "legend",
+      "price": 4000,
+      "power": 55,
+      "minLevel": 4,
+      "role": "Defans",
+      "art": "person-def-4"
+    },
+    {
+      "id": "p35",
+      "category": "players",
+      "name": "Işıl Aydoğan",
+      "tier": "legend",
+      "price": 4000,
+      "power": 59,
+      "minLevel": 4,
+      "role": "Defans",
+      "art": "person-def-5"
+    },
+    {
+      "id": "p36",
+      "category": "players",
+      "name": "Kerem Yalçın",
+      "tier": "legend",
+      "price": 4000,
+      "power": 63,
+      "minLevel": 4,
+      "role": "Defans",
+      "art": "person-def-6"
+    },
+    {
+      "id": "p37",
+      "category": "players",
+      "name": "Derin Ayhan",
+      "tier": "legend",
+      "price": 4000,
+      "power": 67,
+      "minLevel": 4,
+      "role": "Orta saha",
+      "art": "person-mid-1"
+    },
+    {
+      "id": "p38",
+      "category": "players",
+      "name": "Sarp Güneri",
+      "tier": "legend",
+      "price": 4000,
+      "power": 55,
+      "minLevel": 4,
+      "role": "Orta saha",
+      "art": "person-mid-2"
+    },
+    {
+      "id": "p39",
+      "category": "players",
+      "name": "Nil Tunçer",
+      "tier": "legend",
+      "price": 4000,
+      "power": 59,
+      "minLevel": 4,
+      "role": "Forvet",
+      "art": "person-fwd-3"
+    },
+    {
+      "id": "p40",
+      "category": "players",
+      "name": "Arda Koçak",
+      "tier": "legend",
+      "price": 4000,
+      "power": 63,
+      "minLevel": 4,
+      "role": "Forvet",
+      "art": "person-fwd-4"
+    },
+    {
       "id": "s01",
       "category": "staff",
       "name": "Fizyoterapist Cansu",
@@ -673,5 +761,5 @@
     ],
     "sceneNote": "Slotlara en güçlü oyuncuların otomatik girer."
   },
-  "maxPower": 745
+  "maxPower": 956
 }

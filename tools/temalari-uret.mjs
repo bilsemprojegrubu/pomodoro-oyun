@@ -73,6 +73,14 @@ Doruk Sezgin|Forvet|gold
 Lale Çınar|Forvet|gold
 Atlas Bayraktar|Forvet|gold
 Rüya Kılıçer|Forvet|legend
+Doğa Kaplan|Kaleci|legend
+Barış Çelikel|Defans|legend
+Işıl Aydoğan|Defans|legend
+Kerem Yalçın|Defans|legend
+Derin Ayhan|Orta saha|legend
+Sarp Güneri|Orta saha|legend
+Nil Tunçer|Forvet|legend
+Arda Koçak|Forvet|legend
 `.trim().split('\n');
 
 const footballStaff = `

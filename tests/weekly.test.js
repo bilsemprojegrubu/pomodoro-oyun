@@ -28,8 +28,8 @@ describe('haftalık olay', () => {
   });
 
   it('çok güçlü takım kazanır, çok zayıf kaybeder; kaybetmek de para verir', () => {
-    expect(simulate({ theme, power: 700, minutes: 500, week: '2025-01-06' }).result).toBe('win');
-    const lose = simulate({ theme, power: 65, minutes: 0, week: '2025-01-06' });
+    expect(simulate({ theme, power: theme.maxPower, minutes: 500, week: '2025-01-06' }).result).toBe('win');
+    const lose = simulate({ theme, power: 80, minutes: 0, week: '2025-01-06' });
     expect(['lose', 'draw']).toContain(lose.result);
     expect(lose.coins).toBeGreaterThan(0);
   });
