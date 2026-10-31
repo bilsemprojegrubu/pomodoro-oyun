@@ -375,6 +375,41 @@
     "explain": "{label}: {power}. Bu haftaki {time} çalışman da sonucu etkiledi.",
     "noLoss": "Sonuç ne olursa olsun hiçbir şey kaybetmezsin."
   },
+  "friendly": {
+    "title": "Hazırlık maçı",
+    "intro": "İlk 11'ini kurdun. İstediğin zaman maç yap; kazanırsan {n} para alırsın, kaybedersen hiçbir şey kaybetmezsin.",
+    "play": "Maça çık",
+    "left": "Bugün {done} / {allowed} maç oynadın",
+    "reason": {
+      "lineup": "Önce ilk 11'ini tamamla ({filled} / {total}). Mağazadan eksik mevkilere oyuncu al.",
+      "needPomodoro": "Yeni maç hakkı için bir Pomodoro daha tamamla. Her maç, o gün yaptığın bir Pomodoro ile açılır.",
+      "dayLimit": "Bugünlük maçların bitti. Yarın yeniden oynayabilirsin."
+    },
+    "ready": "Sahaya çıkılıyor...",
+    "modalTitle": "Hazırlık maçı",
+    "result": {
+      "win": "Kazandın!",
+      "draw": "Berabere",
+      "lose": "Bu maç olmadı"
+    },
+    "coins": "+{n} para",
+    "noCoins": "Bu sefer para yok, ama hiçbir şey de kaybetmedin.",
+    "scoreLine": "Takımın {mine} · {opp} rakip",
+    "opponent": "Rakip: {name}",
+    "analysisTitle": "Maç analizi",
+    "power": "Takım gücün {mine}, rakibin gücü {opp}.",
+    "effort": "Bugünkü {time} odak çalışman da sahaya yansıdı.",
+    "lines": "Mevkilerin güç durumu",
+    "line": "{role}: %{percent}",
+    "strong": "En güçlü mevkin: {role}.",
+    "weak": "En zayıf mevkin: {role}. Mağazadan bu mevkiye oyuncu almak takımı en çok güçlendirir.",
+    "tip": {
+      "win": "Böyle devam! Daha güçlü rakipler için yeni seviyeye ulaşmayı dene.",
+      "draw": "Çok az kaldı. Bir iki oyuncu daha ya da biraz daha odak, farkı yaratır.",
+      "lose": "Kaybetmek öğrenmektir. Zayıf mevkini güçlendir ve Pomodoro yap; sonra tekrar dene."
+    },
+    "close": "Tamam"
+  },
   "notify": {
     "doneTitle": "Pomodoro tamamlandı 🎉",
     "doneBody": "Harika iş! Şimdi kısa bir mola ver.",

@@ -51,6 +51,15 @@ export const CONFIG = {
     loseCoins: 60,
   },
 
+  // Hazırlık maçı (futbol): istediğin zaman oyna. Kazanırsan küçük ödül, kaybedersen kayıp yok.
+  friendly: {
+    winCoins: 10,
+    drawCoins: 0,
+    loseCoins: 0,
+    maxPerDay: 3, // Günde en fazla bu kadar maç; her maç için o gün tamamlanmış bir Pomodoro gerekir
+    randomness: 0.1,
+  },
+
   // Seviye eşikleri, tema gücünün en yüksek değerinin oranı olarak (araçlar/temalari-uret.mjs)
   levelFractions: [0, 0.08, 0.22, 0.42, 0.68],
 

@@ -47,6 +47,12 @@ Talimatta net olmayan ya da birden fazla yolu olan yerlerde verilen kararlar. He
 - **Anket zorunlu değil:** onboarding'de "Şimdi değil" ile atlanabilir; o gün tekrar sorulmaz, ertesi gün nazikçe yeniden sorulur.
 - **Kontrol modu gizli:** Ayarlar → Hakkında'da sürüm yazısına 5 kez dokununca "Araştırma raporu" ekranında açılır. İlk 3 gün oyun/tema/mağaza/para kapalıdır, sonra kendiliğinden açılır; veri `mode: control | game` etiketiyle ayrılır.
 
+## Hazırlık maçı (futbol)
+- **Ne zaman:** İlk 11 (kaleci 1, defans 4, orta saha 3, forvet 3) kurulunca Dünyam'da "Maça çık" açılır; haftalık maçtan bağımsızdır.
+- **Ödül:** Kazanırsan 10 para. Kaybedersen ya da berabere kalırsan 0 — para kaybı yok, kazanç yok (`CONFIG.friendly`).
+- **Para sömürülmesin diye:** Her maç için o gün tamamlanmış bir Pomodoro gerekir, günde en fazla 3 maç. Sonuç gün + maç sırasına bağlıdır; yeniden deneyerek değişmez.
+- **Analiz:** Takım gücü ve rakip gücü, bugünkü odak süresinin etkisi, mevkilere göre güç yüzdesi, en güçlü/zayıf mevki ve öneri gösterilir. Kayıp bir "ceza" değil, öğrenme fırsatı olarak anlatılır.
+
 ## Görsel ve erişilebilirlik
 - **Görseller:** ürünler için "kademe renkli kare + emoji" ya da kod ile çizilen karakter (SVG). Tek yerden: `src/assets/art.js`. Kademe sadece renkle değil, ikon + yazıyla da verilir.
 - **Sesler Web Audio ile kodla üretilir** — dosya/telif yok.

@@ -4,6 +4,7 @@ import { t, fmtNumber } from '../../i18n/index.js';
 import { itemArt, emptySlotArt } from '../../assets/art.js';
 import { equippedIds, levelInfo, themeState, totalPower } from '../../core/economy.js';
 import { openModal } from '../components/modal.js';
+import { friendlyCard } from './friendly.js';
 
 // Son satın alınan ürün (sahneye animasyonla gelsin diye)
 let justBought = null;
@@ -112,6 +113,7 @@ export function mount(root, ctx) {
             h('a', { class: 'btn btn-outline', href: '#/shop' }, t('world.goShop'))))
       : null,
     sections,
+    ts.owned.length ? friendlyCard(ctx, theme) : null,
     h('p', { class: 'small muted center' }, theme.texts.sceneNote)));
   justBought = null;
   return {};
