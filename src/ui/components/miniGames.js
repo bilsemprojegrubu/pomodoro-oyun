@@ -266,7 +266,7 @@ function penaltyKeeper({ idx, root, msg, area, done }) {
     phase = 'shot';
     // Rakip de kaydırarak vuruyor: şutun gücü (hız) ve falsosu rastgele. Yavaş şutta kaleci yandaki köşeden de yetişebilir.
     const power = Math.min(1, 0.12 + Math.random() * 0.88);
-    const bend = Math.random() < 0.45 ? (Math.random() < 0.5 ? -1 : 1) * (0.3 + Math.random() * 0.6) : 0;
+    const bend = Math.random() < 0.45 ? (Math.random() < 0.5 ? -1 : 1) * (0.15 + Math.random() * 0.3) : 0;
     const reach = power < 0.35 && dive !== null && Math.abs(dive - target) === 1;
     const saved = dive === target || reach;
     if (saved) saves += 1;

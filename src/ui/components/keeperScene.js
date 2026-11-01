@@ -117,7 +117,7 @@ export function keeperScene({ onZone, labels = ['Sol köşe', 'Orta', 'Sağ kö�
       const ty = goal ? 26 + Math.random() * 26 : 38;
       const dx = ((tx - SPOT.x) / 100) * W;
       const dy = ((ty - SPOT.y) / 100) * H;
-      const side0 = bend * W * 0.22;
+      const side0 = bend * W * 0.18;
       animate(ball, [
         { transform: 'translate(-50%, -50%) translate(0px, 0px) scale(1) rotate(0deg)' },
         { transform: `translate(-50%, -50%) translate(${dx * 0.4 + side0}px, ${dy * 0.5 - H * 0.04}px) scale(1.8) rotate(240deg)`, offset: 0.5 },

@@ -67,17 +67,21 @@ export function readSwipe(pts, W, H) {
   const raw = (v - 1) / 7; // telefonda hızlı fiske ~6-8 sahne yüksekliği/sn
   const power = Math.max(0, Math.min(1, raw));
   // Yön: yataydaki sapma kale genişliğine yansır.
-  const tx0 = SPOT.x + (cx / Math.abs(cy)) * 34;
+  // Yön için yolun son kısmına bakılır (parmağın bıraktığı yön); başta sağa gidip sola bırakırsan top sola gider.
+  const e = pts[Math.max(0, Math.floor(pts.length * 0.6))];
+  const ex = b.x - e.x;
+  const ey = b.y - e.y;
+  const tx0 = SPOT.x + (Math.hypot(ex, ey) > H * 0.03 && ey < 0 ? ex / Math.abs(ey) : cx / Math.abs(cy)) * 34;
   // Falso: yolun düz çizgiden en çok saptığı nokta (sağa şişerse +).
   let dev = 0;
   for (const q of pts) {
     const d = (cx * (q.y - a.y) - cy * (q.x - a.x)) / len;
     if (Math.abs(d) > Math.abs(dev)) dev = d;
   }
-  const bend = Math.max(-1, Math.min(1, (dev / len) / 0.3));
+  const bend = Math.max(-0.45, Math.min(0.45, (dev / len) / 0.5)); // falso hafif kalır
   // Falsolu top hedefe doğru az da olsa ters yöne kıvrılır.
-  const tx = tx0 - bend * 4;
-  return { tx, power, over: raw > 1.5, bend: Math.abs(bend) < 0.12 ? 0 : bend, speed: v };
+  const tx = tx0 - bend * 5;
+  return { tx, power, over: raw > 1.5, bend: Math.abs(bend) < 0.1 ? 0 : bend, speed: v };
 }
 
 /**
@@ -153,7 +157,7 @@ export function penaltyScene({ onZone, onSwipe = null, keeperId = 'kaleci', keep
       const dx = ((tx - SPOT.x) / 100) * W;
       const dy = ((ty - SPOT.y) / 100) * H;
       // Falso: top yolda yana açılıp hedefe geri kıvrılır (bend > 0 sağa).
-      const side = bend * W * 0.28;
+      const side = bend * W * 0.18;
       const at = (k, sc, rot) => `translate(-50%, -50%) translate(${dx * k + side * Math.sin(k * Math.PI)}px, ${dy * k - H * 0.07 * Math.sin(k * Math.PI)}px) scale(${sc}) rotate(${rot}deg)`;
       const end = at(1, 0.48, 620);
       animate(ball, [0, 0.25, 0.5, 0.75, 1].map((k) => ({ transform: at(k, 1 - k * 0.52, k * 620), offset: k })), { duration: fly, delay: run, easing: 'cubic-bezier(.25,.6,.4,1)' });
