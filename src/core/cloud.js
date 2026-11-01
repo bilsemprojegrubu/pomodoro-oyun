@@ -24,7 +24,8 @@ export function errorText(err) {
   if (m.includes('invalid_credentials') || m.includes('invalid login')) return 'Kullanıcı adı veya şifre yanlış.';
   if (m.includes('weak') || m.includes('password')) return 'Şifre çok zayıf. Daha uzun bir şifre dene.';
   if (m.includes('rate') || m.includes('too many') || m.includes('429')) return 'Çok fazla deneme yapıldı. Biraz bekle.';
-  return 'Bir sorun oluştu. Sonra tekrar dene.';
+  const detail = String((err && (err.code || err.error_code || err.msg || err.message)) || '').slice(0, 80);
+  return `Bir sorun oluştu. Sonra tekrar dene.${detail ? ` (${detail})` : ''}`;
 }
 
 /** Basit metin özeti: durumun değişip değişmediğini anlamak için. */
