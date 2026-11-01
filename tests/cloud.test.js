@@ -149,3 +149,10 @@ describe('errorText sayısal kod', () => {
 it('kayıt kapalıysa anlaşılır mesaj verir', () => {
   expect(errorText({ code: 422, error_code: 'signup_disabled', msg: 'Signups not allowed for this instance' })).toMatch(/kapalı/);
 });
+
+it('Türkçe harfli kullanıcı adı düz harfe çevrilir', () => {
+  expect(cleanUsername('MEGİ')).toBe('megi');
+  expect(cleanUsername('Çağrı_Şen')).toBe('cagri_sen');
+  expect(cleanUsername('ışık')).toBe('isik');
+  expect(cleanUsername('a b')).toBeNull();
+});

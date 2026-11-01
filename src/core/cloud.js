@@ -9,7 +9,9 @@ const KEY = 'pomodoroOyun.bulut';
 
 /** Kullanıcı adı kurallarına uyuyorsa küçük harfli hâlini, uymuyorsa null döndürür. */
 export function cleanUsername(raw) {
-  const u = String(raw || '').trim().toLowerCase();
+  // Telefon klavyesi "İ", "ı", "ş" gibi Türkçe harf yazabilir; önce düz harfe çevir (aksi hâlde küçük harf yapınca "i̇" bozulur).
+  const tr = { 'İ': 'i', 'I': 'i', 'ı': 'i', 'Ç': 'c', 'ç': 'c', 'Ğ': 'g', 'ğ': 'g', 'Ö': 'o', 'ö': 'o', 'Ş': 's', 'ş': 's', 'Ü': 'u', 'ü': 'u' };
+  const u = String(raw || '').trim().replace(/[İIıÇçĞğÖöŞşÜü]/g, (c) => tr[c]).toLowerCase();
   return /^[a-z0-9_]{3,20}$/.test(u) ? u : null;
 }
 

@@ -192,7 +192,7 @@ export function mount(root, ctx) {
     openModal({
       title: signup ? 'Hesap oluştur' : 'Giriş yap',
       body: [
-        h('div', { class: 'field' }, h('label', { for: 'au-user' }, 'Kullanıcı adı'), user, h('p', { class: 'small muted' }, '3-20 karakter: harf (a-z, Türkçe harf olmadan), rakam ve alt çizgi.')),
+        h('div', { class: 'field' }, h('label', { for: 'au-user' }, 'Kullanıcı adı'), user, h('p', { class: 'small muted' }, '3-20 karakter: harf, rakam ve alt çizgi. Türkçe harfler (İ, ş, ğ…) otomatik düz harfe çevrilir.')),
         h('div', { class: 'field' }, h('label', { for: 'au-pw' }, 'Şifre'), pw),
         pw2 ? h('div', { class: 'field' }, h('label', { for: 'au-pw2' }, 'Şifre (tekrar)'), pw2) : null,
         mail ? h('div', { class: 'field' }, h('label', { for: 'au-mail' }, 'E-posta (isteğe bağlı)'), mail, h('p', { class: 'small muted' }, 'Sadece şifreni unutursan seni tanımak için. Boş bırakabilirsin. Reklam ya da başka amaçla kullanılmaz.')) : null,
