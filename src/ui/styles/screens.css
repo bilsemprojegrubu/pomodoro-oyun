@@ -211,22 +211,6 @@ body.focus-mode .ambient { position: fixed; inset: 0; border-radius: 0; }
 .mg-topitem { position: absolute; width: 11%; transform: translate(-50%, 0); line-height: 0; }
 .mg-topitem svg { width: 100%; height: auto; }
 .mg-drop { width: 100%; margin-top: 0.5rem; min-height: 52px; font-size: 1.1rem; }
-.mg-goal { position: relative; height: 150px; border-radius: 14px; background: #3c9d4e; border-top: 8px solid #fff; overflow: hidden; }
-.mg-zones { position: absolute; inset: 0; display: grid; grid-template-columns: repeat(3, 1fr); }
-.mg-zone { border: 2px dashed rgb(255 255 255 / 70%); background: transparent; cursor: pointer; }
-.mg-zone:active, .mg-zone.picked { background: rgb(255 255 255 / 25%); }
-.mg-goal { background-image: repeating-linear-gradient(45deg, rgb(255 255 255 / 10%) 0 2px, transparent 2px 12px), repeating-linear-gradient(-45deg, rgb(255 255 255 / 10%) 0 2px, transparent 2px 12px); }
-.mg-goal.hit { animation: goal-hit 0.5s ease-out; }
-@keyframes goal-hit { 0% { filter: brightness(1.8); transform: scale(1.02); } 100% { filter: none; transform: none; } }
-.mg-keeper { position: absolute; bottom: 0; width: 24%; transform: translateX(-50%); transition: left 0.15s, rotate 0.25s ease-out, translate 0.25s ease-out; pointer-events: none; line-height: 0; transform-origin: 50% 80%; }
-.mg-keeper.dive-l { rotate: -62deg; translate: -22% -18%; }
-.mg-keeper.dive-r { rotate: 62deg; translate: 22% -18%; }
-.mg-keeper.dive-c { translate: 0 -26%; }
-.mg-keeper svg { width: 100%; height: auto; }
-.mg-ball { position: absolute; top: 162px; left: 50%; width: 36px; height: 36px; border-radius: 50%; background: radial-gradient(circle at 35% 35%, #fff 55%, #bbb); border: 2px solid #333; transform: translateX(-50%); box-shadow: 0 6px 6px -4px rgb(0 0 0 / 40%); transition: left 0.5s linear, transform 0.5s cubic-bezier(0.1, 0.8, 0.3, 1), rotate 0.6s ease-out; }
-.mg-ball.reset { transition: none; }
-.mg-goal { margin-bottom: 52px; }
-.mg-ball.fly { transform: translate(-50%, -125px) scale(0.6); rotate: 720deg; }
 .mg-cards { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.5rem; }
 .mg-cards { perspective: 600px; }
 .mg-card { position: relative; aspect-ratio: 1; padding: 0; border-radius: 14px; border: 0; background: transparent; cursor: pointer; transform-style: preserve-3d; transition: transform 0.4s; }
@@ -249,9 +233,7 @@ body.focus-mode .ambient { position: fixed; inset: 0; border-radius: 0; }
 .mg-hole.up svg { opacity: 1; transform: none; }
 .mg-hole.fed.up svg { opacity: 1; }
 .mg-hole.fed:not(.up) svg { opacity: 1; }
-:root[data-motion="off"] .mg-ball, :root[data-motion="off"] .mg-keeper, :root[data-motion="off"] .mg-hole svg { transition: none; }
 .mg-note, .sg-note { margin: 0; text-align: center; }
-.mg-hint { position: absolute; top: 40%; width: 18%; aspect-ratio: 1; transform: translate(-50%, -50%); border: 4px solid #ffd33d; border-radius: 50%; pointer-events: none; z-index: 3; }
 .mg-btns .btn[hidden] { display: none; }
 
 .mg-cues { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; margin-top: 0.5rem; }
@@ -275,3 +257,116 @@ body.focus-mode .ambient { position: fixed; inset: 0; border-radius: 0; }
 .fx-float.streak { color: #ffb347; font-size: 1.1rem; }
 @keyframes fx-float { 0% { opacity: 0; transform: translate(-50%, 0) scale(0.5); } 20% { opacity: 1; transform: translate(-50%, -30%) scale(1.25); } 100% { opacity: 0; transform: translate(-50%, -140%) scale(1); } }
 .fly-clone { position: fixed; z-index: 96; margin: 0; padding: 0; pointer-events: none; transform-origin: center; }
+
+:root[data-motion="off"] .mg-hole svg { transition: none; }
+
+/* ---- Penaltı sahnesi ---- */
+.pk { display: grid; gap: 0.5rem; }
+.pk-stage { position: relative; width: 100%; aspect-ratio: 1; max-width: 26rem; margin: 0 auto; border-radius: 16px; overflow: hidden; background: #2f8f47; box-shadow: inset 0 0 0 1px rgb(0 0 0 / 10%); }
+.pk-bg, .pk-posts { position: absolute; inset: 0; width: 100%; height: 100%; display: block; pointer-events: none; }
+.pk-crowd { position: absolute; left: 0; top: 0; width: 100%; height: 28%; display: block; z-index: 1; pointer-events: none; }
+.pk-bg { z-index: 0; }
+.pk-posts { z-index: 4; }
+.pk-crowd circle { transform-box: fill-box; transform-origin: center; }
+.pk-stage.cheer .pk-crowd circle { animation: pk-cheer 0.35s ease-out 4 alternate; }
+.pk-stage.cheer .pk-crowd circle:nth-child(3n) { animation-delay: 0.08s; }
+.pk-stage.cheer .pk-crowd circle:nth-child(3n+1) { animation-delay: 0.16s; }
+@keyframes pk-cheer { to { transform: translateY(-1.6px); } }
+.pk-net { position: absolute; left: 14%; right: 14%; top: 20%; height: 36%; z-index: 2; pointer-events: none; --hx: 50%; --hy: 50%;
+  background: repeating-linear-gradient(60deg, rgb(255 255 255 / 30%) 0 1px, transparent 1px 9px), repeating-linear-gradient(-60deg, rgb(255 255 255 / 30%) 0 1px, transparent 1px 9px); transform-origin: var(--hx) var(--hy); }
+.pk-net::after { content: ''; position: absolute; left: var(--hx); top: var(--hy); width: 30%; aspect-ratio: 1; border-radius: 50%; transform: translate(-50%, -50%) scale(0); background: radial-gradient(rgb(255 255 255 / 55%), transparent 70%); opacity: 0; }
+.pk-net.hit { animation: pk-net 0.6s ease-out; }
+.pk-net.hit::after { animation: pk-ripple 0.6s ease-out; }
+@keyframes pk-net { 0% { transform: scale(1); } 25% { transform: scale(1.06, 0.96); } 55% { transform: scale(0.98, 1.02); } 100% { transform: none; } }
+@keyframes pk-ripple { 0% { transform: translate(-50%, -50%) scale(0.2); opacity: 1; } 100% { transform: translate(-50%, -50%) scale(2.4); opacity: 0; } }
+.pk-zones { position: absolute; left: 14%; right: 14%; top: 20%; height: 36%; z-index: 5; display: grid; grid-template-columns: repeat(3, 1fr); }
+.pk-zone { border: 0; border-left: 1px dashed rgb(255 255 255 / 35%); background: transparent; cursor: pointer; transition: background 0.15s; -webkit-tap-highlight-color: transparent; }
+.pk-zone:first-child { border-left: 0; }
+.pk-zone:active, .pk-zone.picked { background: radial-gradient(circle, rgb(255 230 102 / 45%), transparent 70%); }
+.pk-keeper { position: absolute; left: 50%; bottom: 44%; width: 19%; z-index: 3; translate: -50% 0; line-height: 0; pointer-events: none; transition: left 0.22s cubic-bezier(.3,.7,.4,1); }
+.pk-keeper-in { display: block; transform-origin: 50% 60%; transition: transform 0.32s cubic-bezier(.2,.9,.3,1); }
+.pk-keeper svg { width: 100%; height: auto; display: block; filter: drop-shadow(0 3px 2px rgb(0 0 0 / 30%)); }
+.pk-keeper.ready .pk-keeper-in { animation: pk-ready 0.5s ease-in-out infinite alternate; }
+@keyframes pk-ready { from { transform: translateY(0) scaleY(1); } to { transform: translateY(4%) scaleY(0.95); } }
+.pk-keeper.dive-l .pk-keeper-in { transform: translate(-8%, -6%) rotate(-68deg) scale(1.05); }
+.pk-keeper.dive-r .pk-keeper-in { transform: translate(8%, -6%) rotate(68deg) scale(1.05); }
+/* Eldivenler: beklerken omuz yanında, atlayınca başın üstüne uzanır. */
+.pk-keeper-in { position: relative; }
+.pk-keeper-in::before, .pk-keeper-in::after { content: ''; position: absolute; top: 66%; width: 24%; aspect-ratio: 1; border-radius: 45% 45% 40% 40%; background: #b6f36b; border: 2px solid #3d6b12; z-index: 1; transition: top 0.3s cubic-bezier(.2,.9,.3,1), left 0.3s cubic-bezier(.2,.9,.3,1), right 0.3s cubic-bezier(.2,.9,.3,1); }
+.pk-keeper-in::before { left: -8%; }
+.pk-keeper-in::after { right: -8%; }
+.pk-keeper.dive-l .pk-keeper-in::before, .pk-keeper.dive-r .pk-keeper-in::before, .pk-keeper.dive-c .pk-keeper-in::before { top: -14%; left: 16%; }
+.pk-keeper.dive-l .pk-keeper-in::after, .pk-keeper.dive-r .pk-keeper-in::after, .pk-keeper.dive-c .pk-keeper-in::after { top: -14%; right: 16%; }
+.pk-keeper.dive-c .pk-keeper-in { transform: translateY(-28%) scale(1.1, 1.05); }
+.pk-shooter { position: absolute; left: 30%; top: 66%; width: 12%; z-index: 6; line-height: 0; pointer-events: none; }
+.pk-shooter svg { width: 100%; height: auto; display: block; filter: drop-shadow(0 3px 2px rgb(0 0 0 / 30%)); }
+.pk-ball { position: absolute; left: 50%; top: 86%; width: 9%; aspect-ratio: 1; z-index: 7; border-radius: 50%; transform: translate(-50%, -50%); pointer-events: none;
+  background: radial-gradient(circle at 50% 50%, #222 0 14%, transparent 15%), radial-gradient(circle at 18% 30%, #222 0 9%, transparent 10%), radial-gradient(circle at 82% 30%, #222 0 9%, transparent 10%), radial-gradient(circle at 30% 85%, #222 0 9%, transparent 10%), radial-gradient(circle at 70% 85%, #222 0 9%, transparent 10%), radial-gradient(circle at 35% 30%, #fff, #d9d9d9 70%);
+  box-shadow: inset -2px -3px 4px rgb(0 0 0 / 25%); }
+.pk-shadow { position: absolute; left: 50%; top: 89%; width: 9%; height: 2.4%; z-index: 6; border-radius: 50%; background: rgb(0 0 0 / 45%); transform: translate(-50%, -50%); filter: blur(1px); pointer-events: none; }
+.pk-flash { position: absolute; inset: 0; z-index: 8; pointer-events: none; opacity: 0; }
+.pk-flash.good { animation: pk-flash 0.5s ease-out; background: radial-gradient(circle, rgb(255 240 150 / 70%), transparent 70%); }
+.pk-flash.bad { animation: pk-flash 0.5s ease-out; background: radial-gradient(circle, rgb(255 90 70 / 45%), transparent 70%); }
+@keyframes pk-flash { 0% { opacity: 1; } 100% { opacity: 0; } }
+.pk-banner { position: absolute; left: 50%; top: 66%; z-index: 9; transform: translate(-50%, -50%); font-size: clamp(1.8rem, 11vw, 3.2rem); font-weight: 900; letter-spacing: 0.02em; white-space: nowrap; pointer-events: none; opacity: 0;
+  -webkit-text-stroke: 2px rgb(0 0 0 / 55%); paint-order: stroke fill; text-shadow: 0 4px 0 rgb(0 0 0 / 30%); }
+.pk-banner.good { color: #ffe066; }
+.pk-banner.bad { color: #fff; }
+.pk-banner.show { animation: pk-banner 1.1s cubic-bezier(.2,1.4,.4,1) forwards; }
+@keyframes pk-banner { 0% { opacity: 0; transform: translate(-50%, -50%) scale(2.6) rotate(-10deg); } 18% { opacity: 1; transform: translate(-50%, -50%) scale(1) rotate(-6deg); } 80% { opacity: 1; transform: translate(-50%, -50%) scale(1.05) rotate(-6deg); } 100% { opacity: 0; transform: translate(-50%, -80%) scale(0.9) rotate(-6deg); } }
+.pk-stage.shake { animation: pk-shake 0.4s ease-out; }
+@keyframes pk-shake { 20% { translate: -4px 2px; } 40% { translate: 4px -2px; } 60% { translate: -3px 1px; } 80% { translate: 2px 0; } }
+.pk-hint { position: absolute; top: 34%; width: 16%; aspect-ratio: 1; z-index: 6; translate: -50% -50%; border: 4px solid #ffd33d; border-radius: 50%; pointer-events: none; box-shadow: 0 0 12px #ffd33d; }
+.pk-hint.on { animation: pk-hint 0.7s ease-out; }
+@keyframes pk-hint { 0% { scale: 1.8; opacity: 0; } 30% { scale: 1; opacity: 1; } 100% { scale: 1; opacity: 0.9; } }
+.pk-board { display: flex; justify-content: center; gap: 6px; }
+.pk-dot { width: 18px; height: 18px; border-radius: 50%; border: 2px solid var(--border); background: var(--surface-2, #eee); }
+.pk-dot.good { background: #3fae58; border-color: #2a7f3e; }
+.pk-dot.bad { background: #e4573d; border-color: #a83a26; }
+.pk-dot.pop { animation: pop 0.35s cubic-bezier(.3,1.6,.5,1); }
+
+/* ---- Oyun sonu kartı ---- */
+.mg-result { position: absolute; inset: 0; z-index: 20; display: grid; place-items: center; padding: 0.5rem; border-radius: 16px; background: rgb(0 0 0 / 35%); animation: mg-res-bg 0.3s ease-out; }
+.mg-res-card { width: min(100%, 18rem); padding: 1rem; border-radius: 18px; background: var(--surface, #fff); color: var(--text); text-align: center; display: grid; gap: 0.35rem; box-shadow: 0 10px 30px rgb(0 0 0 / 30%); animation: mg-res-in 0.5s cubic-bezier(.2,1.4,.4,1); }
+.mg-res-stars { display: flex; justify-content: center; gap: 0.3rem; font-size: 2.6rem; line-height: 1; }
+.mg-res-star { color: var(--border); }
+.mg-res-star.on { color: #f2c230; text-shadow: 0 2px 0 #b8941f; animation: mg-star 0.45s cubic-bezier(.3,1.8,.5,1) both; animation-delay: calc(0.35s + var(--i) * 0.22s); }
+.mg-res-star:nth-child(2) { font-size: 1.25em; translate: 0 -0.15em; }
+.mg-res-title { font-size: 1.4rem; color: var(--primary); }
+.mg-res-text { margin: 0; font-size: 0.9rem; }
+.mg-res-got { margin: 0; font-size: 1.3rem; font-weight: 800; color: #b8860b; }
+@keyframes mg-res-bg { from { opacity: 0; } }
+@keyframes mg-res-in { from { opacity: 0; transform: scale(0.6) translateY(20px); } }
+@keyframes mg-star { 0% { transform: scale(0) rotate(-90deg); opacity: 0; } 100% { transform: none; opacity: 1; } }
+
+/* ---- Diğer mini oyun dokunuşları ---- */
+.mg-layer.perfect { box-shadow: inset 0 -4px 0 rgb(0 0 0 / 15%), 0 0 0 3px #fff6, 0 0 14px 4px #ffe066; }
+.mg-card.win { animation: mg-win 0.5s ease-out both; animation-delay: calc(var(--i) * 50ms); }
+@keyframes mg-win { 40% { translate: 0 -14px; scale: 1.08; } }
+.fx-burst { position: fixed; z-index: 97; font-size: 1.1rem; line-height: 1; pointer-events: none; }
+
+/* ---- Servis oyunu: verilen eşyalar, giriş/çıkış ---- */
+.sg-given { position: absolute; inset: 0; z-index: 5; pointer-events: none; }
+.sg-gift { position: absolute; bottom: 9%; width: 13%; translate: -50% 0; line-height: 0; transition: translate 0.7s ease-in, opacity 0.7s; }
+.sg-given-cafe .sg-gift { width: 11%; bottom: 8%; }
+.sg-gift svg { width: 100%; height: auto; display: block; filter: drop-shadow(0 3px 2px rgb(0 0 0 / 30%)); }
+.sg-gift.land { animation: sg-land 0.45s cubic-bezier(.3,1.6,.5,1); }
+.sg-given-football .sg-gift svg, .sg-given-shelter .sg-gift svg { animation: sc-bob 0.5s ease-in-out infinite alternate; }
+@keyframes sg-land { 0% { transform: translateY(-30%) scale(1.25, 0.8); } 50% { transform: scale(0.9, 1.12); } 100% { transform: none; } }
+.sg-given.exit .sg-gift, .sg-cust.exit { translate: 180% 0; opacity: 0; }
+.sg-given.exit .sg-gift { translate: calc(-50% + 160%) 0; }
+.sg-given.drop .sg-gift { opacity: 0; translate: -50% 40%; }
+.sg-bubble.pop-in { animation: sg-pop-in 0.4s cubic-bezier(.3,1.5,.5,1); transform-origin: 50% 100%; }
+@keyframes sg-pop-in { from { transform: scale(0.6); opacity: 0; } }
+.sg-bubble::after { content: ''; position: absolute; left: 50%; bottom: -9px; width: 18px; height: 18px; background: inherit; transform: translateX(-50%) rotate(45deg); border-radius: 3px; z-index: -1; }
+.sg-need.done::after { content: '✓'; position: absolute; inset: 0; display: grid; place-items: center; font-size: 1.6rem; font-weight: 900; color: #2a7f3e; text-shadow: 0 0 4px #fff; }
+.sg-need.done { opacity: 0.75; }
+.sg-cust.angry svg { filter: sepia(0.6) saturate(3) hue-rotate(-35deg) brightness(0.95); }
+.sg-cust.leave { translate: -260% 0; }
+.sg-cust.no svg { animation: sg-no 0.4s ease-in-out; }
+@keyframes sg-no { 20% { rotate: -8deg; } 50% { rotate: 8deg; } 80% { rotate: -5deg; } }
+.sg-cust svg { transform-origin: 50% 90%; }
+.sg-stats { font-variant-numeric: tabular-nums; }
+.sg-motion { display: grid; gap: 0.4rem; padding: 0.6rem; border-radius: 12px; background: var(--tint); text-align: center; }
+
+/* Telefon animasyonları kapattığında kullanıcı "yine de göster" derse oyunlar çalışır (ayar). */

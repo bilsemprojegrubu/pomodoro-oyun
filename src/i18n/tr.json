@@ -329,6 +329,8 @@
     "notifyDenied": "Bildirim izni verilmedi.",
     "reduceMotion": "Animasyonları azalt",
     "reduceMotionDesc": "Hareketli efektleri kapatır.",
+    "forceMotion": "Animasyonları yine de göster",
+    "forceMotionDesc": "Telefonunda animasyonlar kapalı. Bunu açarsan oyun animasyonları görünür.",
     "look": "Görünüm",
     "colorMode": "Renk modu",
     "mode": { "auto": "Otomatik", "light": "Aydınlık", "dark": "Karanlık" },

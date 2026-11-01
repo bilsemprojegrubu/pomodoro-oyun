@@ -136,8 +136,11 @@ function applySettings() {
   root.style.setProperty('--font-scale', String(s.fontScale));
   if (s.colorMode === 'auto') root.removeAttribute('data-mode');
   else root.dataset.mode = s.colorMode;
-  const motionOff = s.reduceMotion || !!(reduceQuery && reduceQuery.matches);
+  // Telefonda "animasyonları kaldır" açıksa varsayılan kapalı; kullanıcı ayardan yine de açabilir.
+  const sysReduce = !!(reduceQuery && reduceQuery.matches);
+  const motionOff = s.reduceMotion || (sysReduce && !s.forceMotion);
   root.dataset.motion = motionOff ? 'off' : 'on';
+  root.dataset.sysReduce = sysReduce ? '1' : '0';
   setSoundEnabled(s.sound);
   applyTheme();
 }

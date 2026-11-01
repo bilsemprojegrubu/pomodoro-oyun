@@ -15,6 +15,7 @@ export function defaultState(now = Date.now()) {
       vibration: true,
       notifications: false,
       reduceMotion: false,
+      forceMotion: false, // telefon animasyonları kapatsa da göster
       sleepReminder: true,
       autoBreak: true,
       colorMode: 'auto', // auto | light | dark

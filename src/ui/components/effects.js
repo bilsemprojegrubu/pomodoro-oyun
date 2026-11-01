@@ -88,3 +88,27 @@ export function flyClone(src, dst, ms = 380) {
   );
   anim.onfinish = () => c.remove();
 }
+
+/** Küçük patlama: anchor'ın ortasından n parça (emoji) etrafa saçılır. */
+export function burst(anchor, emoji = '✨', n = 8) {
+  if (!motionOn() || !anchor || !anchor.isConnected) return;
+  const r = anchor.getBoundingClientRect();
+  const cx = r.left + r.width / 2;
+  const cy = r.top + r.height / 2;
+  for (let i = 0; i < n; i++) {
+    const p = h('span', { class: 'fx-burst', 'aria-hidden': 'true' }, emoji);
+    Object.assign(p.style, { left: `${cx}px`, top: `${cy}px` });
+    document.body.append(p);
+    const ang = (i / n) * Math.PI * 2 + Math.random() * 0.5;
+    const dist = 36 + Math.random() * 34;
+    const a = p.animate(
+      [
+        { transform: 'translate(-50%, -50%) scale(0.3)', opacity: 1 },
+        { transform: `translate(calc(-50% + ${Math.cos(ang) * dist}px), calc(-50% + ${Math.sin(ang) * dist}px)) scale(1.1)`, opacity: 1, offset: 0.6 },
+        { transform: `translate(calc(-50% + ${Math.cos(ang) * dist * 1.2}px), calc(-50% + ${Math.sin(ang) * dist * 1.2 + 16}px)) scale(0.6)`, opacity: 0 },
+      ],
+      { duration: 650 + Math.random() * 150, easing: 'cubic-bezier(.2,.8,.4,1)', fill: 'both' },
+    );
+    a.onfinish = () => p.remove();
+  }
+}

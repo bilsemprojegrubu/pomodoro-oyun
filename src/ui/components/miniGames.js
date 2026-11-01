@@ -1,10 +1,11 @@
 // Temaya özel ek oyunlar (sadece eğlence; Pomodoro parasını etkilemez).
 // cafe: pasta kulesi · football: penaltı · fashion: kombin eşleştirme · shelter: hayvanları besle
-import { h, fromHTML } from '../dom.js';
+import { h, fromHTML, motionOn } from '../dom.js';
 import { characterArt } from '../../assets/art.js';
 import { propArt } from '../../assets/props.js';
 import { CONFIG } from '../../config.js';
-import { confetti, flyCoins, floatText } from './effects.js';
+import { confetti, flyCoins, floatText, countUp, burst } from './effects.js';
+import { penaltyScene } from './penaltyScene.js';
 
 export const MINI = {
   cafe: { title: 'Pasta kulesi', how: 'Hareket eden katmanı doğru anda "Bırak" ile üstüne koy. Taşan kısım kesilir, kule yükseldikçe hızlanır.' },
@@ -19,22 +20,20 @@ const shuffle = (a) => a.map((v) => [Math.random(), v]).sort((x, y) => x[0] - y[
 const icon = (it) => fromHTML(propArt(it.id) || characterArt('cafe', 0, '', it.id, 64));
 const ownedOf = (theme, ts, cats) => theme.items.filter((i) => cats.includes(i.category) && ts.owned.includes(i.id));
 
-/** Topu bir sonraki şut için (animasyonsuz) başa al. */
-function resetBall(ball) {
-  ball.classList.remove('fly');
-  ball.classList.add('reset');
-  ball.style.left = '50%';
-  void ball.offsetWidth;
-  ball.classList.remove('reset');
-}
-/** Kaleci atlayışı: 0 sol, 1 orta (zıplar), 2 sağ. */
-const diveClass = (z) => (z === 0 ? 'dive-l' : z === 2 ? 'dive-r' : 'dive-c');
-const clearDive = (k) => k.classList.remove('dive-l', 'dive-r', 'dive-c');
-/** Gol / kurtarış anı: ağ parlar, yazı çıkar, gerekirse konfeti. */
-function shotFx(goalEl, text, good, party) {
-  goalEl.classList.remove('hit'); void goalEl.offsetWidth; goalEl.classList.add('hit');
-  floatText(goalEl, text, good ? 'good' : 'bad');
-  if (party) confetti(14);
+/** Oyun sonu kartı: başlık, 0-3 yıldız (sırayla parlar), kazanılan para sayılarak artar. */
+function resultCard(area, text, rate, got, cur) {
+  const stars = rate >= 0.85 ? 3 : rate >= 0.6 ? 2 : rate >= 0.3 ? 1 : 0;
+  const title = ['Tekrar dene!', 'İyi!', 'Çok iyi!', 'Muhteşem!'][stars];
+  const coin = h('b', { class: 'mg-res-coin' }, '0');
+  const card = h('div', { class: `mg-result s${stars}`, role: 'status' },
+    h('div', { class: 'mg-res-card' },
+      h('div', { class: 'mg-res-stars' }, ...[0, 1, 2].map((i) => h('span', { class: `mg-res-star${i < stars ? ' on' : ''}`, style: { '--i': i } }, '★'))),
+      h('strong', { class: 'mg-res-title' }, title),
+      h('p', { class: 'mg-res-text' }, text),
+      got > 0 ? h('p', { class: 'mg-res-got' }, '+', coin, ` ${cur.icon}`) : null));
+  area.append(card);
+  if (got > 0) setTimeout(() => countUp(coin, 0, got, 700), 700);
+  return card;
 }
 
 let stopFn = null;
@@ -65,8 +64,16 @@ export function miniGame(theme, ts, idx, back, pay = () => 0, record = () => nul
       const eff = rate === null ? null : record(rate);
       msg.textContent = [t, coins > 0 ? (got ? `+${got} ${theme.currency.name}` : '(bugünkü oyun parası doldu)') : '',
         eff ? `Başarın %${Math.round(rate * 100)}. Günün özeti skoru şu an %${eff.pct}.` : ''].filter(Boolean).join(' ');
-      if (got > 0) { const to = document.getElementById('coin-value'); if (to && area.isConnected) flyCoins(area.getBoundingClientRect(), to, theme.currency.icon, Math.min(8, 2 + Math.round(got / 3))); }
-      if (rate !== null && rate >= 0.7) confetti(26);
+      const card = rate !== null ? resultCard(area, t, rate, got, theme.currency) : null;
+      if (got > 0) {
+        // Paralar kazanılan sayının yanından üstteki para sayacına uçar.
+        setTimeout(() => {
+          const to = document.getElementById('coin-value');
+          const from = (card && card.querySelector('.mg-res-got')) || area;
+          if (to && from.isConnected) flyCoins(from.getBoundingClientRect(), to, theme.currency.icon, Math.min(8, 2 + Math.round(got / 3)));
+        }, 1500);
+      }
+      if (rate !== null && rate >= 0.6) setTimeout(() => confetti(rate >= 0.85 ? 40 : 22), 500);
       startBtn.textContent = keeperBtn ? 'Şutçu olarak tekrar' : 'Tekrar oyna'; startBtn.hidden = false;
       if (keeperBtn) { keeperBtn.textContent = 'Kaleci olarak tekrar'; keeperBtn.hidden = false; }
     } };
@@ -91,12 +98,20 @@ function tower({ theme, ts, idx, root, msg, area, done }) {
   };
   const items = ownedOf(theme, ts, ['menu']);
   let layers = [{ x: 25, w: 50 }];
-  let w = 50, x = 0, dir = 1, over = false;
+  let w = 50, x = 0, dir = 1, over = false, landAt = 0, perfectAt = 0;
   const speed = () => 1.1 + idx * 0.15 + layers.length * 0.12;
   const draw = () => {
     const rows = layers.slice(-7);
     const base = layers.length - rows.length;
-    board.replaceChildren(...rows.map((l, i) => h('i', { class: 'mg-layer', style: { left: `${l.x}%`, width: `${l.w}%`, bottom: `${i * 11}%`, background: colors[(base + i) % colors.length] } })));
+    // Son konan kat kısa bir an ezilip esner (yumuşak iniş).
+    const k = (Date.now() - landAt) / 280;
+    const sq = k < 1 ? Math.sin(k * Math.PI) : 0;
+    board.replaceChildren(...rows.map((l, i) => {
+      const top = i === rows.length - 1;
+      const style = { left: `${l.x}%`, width: `${l.w}%`, bottom: `${i * 11}%`, background: colors[(base + i) % colors.length] };
+      if (top && sq) { style.transform = `scale(${1 + sq * 0.08}, ${1 - sq * 0.3})`; style.transformOrigin = '50% 100%'; }
+      return h('i', { class: `mg-layer${top && Date.now() - perfectAt < 600 ? ' perfect' : ''}`, style });
+    }));
     if (!over) board.append(h('i', { class: 'mg-layer mg-move', style: { left: `${x}%`, width: `${w}%`, bottom: `${rows.length * 11}%`, background: colors[layers.length % colors.length] } }));
     if (items.length) { const it = items[layers.length % items.length]; const t = h('span', { class: 'mg-topitem', style: { left: `${(over ? layers[layers.length - 1].x + layers[layers.length - 1].w / 2 : x + w / 2)}%`, bottom: `${(rows.length + (over ? 0 : 1)) * 11}%` } }, icon(it)); board.append(t); }
     msg.textContent = `Kat: ${layers.length}`;
@@ -110,7 +125,8 @@ function tower({ theme, ts, idx, root, msg, area, done }) {
     const color = colors[layers.length % colors.length];
     if (r - l <= 1) { chop(x, x + w, rows * 11, color, x < last.x ? -1 : 1); over = true; draw(); bump('collapse'); stopAll(); drop.hidden = true; done(`Kule yıkıldı! ${layers.length - 1} kat yaptın.`, (layers.length - 1) * 2, Math.min(1, (layers.length - 1) / 10)); return; }
     const perfect = Math.abs(x - last.x) < 1.5 && Math.abs(w - last.w) < 1.5;
-    if (perfect) { layers.push({ x: last.x, w: last.w }); w = last.w; floatText(board, 'Mükemmel! ✨', 'good'); bump('bump'); }
+    landAt = Date.now();
+    if (perfect) { layers.push({ x: last.x, w: last.w }); w = last.w; perfectAt = landAt; floatText(board, 'Mükemmel! ✨', 'good'); burst(drop, '✨', 6); bump('bump'); }
     else {
       chop(x, l, rows * 11, color, -1); chop(r, x + w, rows * 11, color, 1);
       layers.push({ x: l, w: r - l }); w = r - l; bump('bump');
@@ -125,30 +141,29 @@ function penalty(c) {
   if (c.mode === 'keep') return penaltyKeeper(c);
   const { idx, root, msg, area, done } = c;
   let keeper = 1, shots = 10, goals = 0, busy = false;
-  const k = h('span', { class: 'mg-keeper' }, fromHTML(characterArt('gk', 1, 'Kaleci', 'kaleci', 70)));
-  const ball = h('span', { class: 'mg-ball' });
-  const zones = [0, 1, 2].map((z) => h('button', { class: 'mg-zone', type: 'button', 'aria-label': ['Sol köşe', 'Orta', 'Sağ köşe'][z], onClick: () => shoot(z) }));
-  const goal = h('div', { class: 'mg-goal' }, h('div', { class: 'mg-zones' }, ...zones), k);
-  area.append(goal, ball);
-  const place = () => { k.style.left = `${keeper * 33.3 + 16.6}%`; };
-  const upd = () => { msg.textContent = `Kalan şut: ${shots} · Gol: ${goals}`; };
-  every(root, Math.max(280, 750 - idx * 55), () => { if (!busy) { keeper = rnd(0, 2); place(); } });
+  const sc = penaltyScene({ onZone: (z) => shoot(z) });
+  area.append(sc.el);
+  const upd = () => { msg.textContent = `Kalan şut: ${shots} · Gol: ${goals} — Kalecinin olmadığı köşeye dokun!`; };
+  every(root, Math.max(280, 750 - idx * 55), () => { if (!busy) { keeper = rnd(0, 2); sc.place(keeper); } });
   function shoot(z) {
     if (busy || shots <= 0) return;
-    busy = true; shots -= 1;
+    busy = true;
+    const n = 10 - shots;
+    shots -= 1;
     const g = z !== keeper;
     if (g) goals += 1;
-    zones[z].classList.add('picked');
-    ball.style.left = `${z * 33.3 + 16.6}%`; ball.classList.add('fly');
-    k.classList.add(diveClass(keeper));
-    setTimeout(() => shotFx(goal, g ? 'GOL!' : 'KURTARDI!', g, g), 350);
-    msg.textContent = g ? 'GOL!' : 'Kaleci kurtardı!';
-    setTimeout(() => {
-      resetBall(ball); clearDive(k); zones[z].classList.remove('picked'); busy = false;
+    sc.pick(z);
+    msg.textContent = 'Şut!';
+    sc.shoot({ target: z, dive: keeper, goal: g, text: g ? 'GOOOL!' : 'KURTARDI!' }, () => {
+      if (!root.isConnected) return;
+      sc.mark(n, g);
+      if (g) confetti(12);
+      sc.reset(); busy = false;
       if (shots <= 0) { stopAll(); done(`Maç bitti: ${goals}/10 gol.`, goals * 2, goals / 10); } else upd();
-    }, 900);
+    });
+    setTimeout(() => { if (root.isConnected && busy) msg.textContent = g ? 'GOL! Harika vuruş!' : 'Kaleci kurtardı!'; }, motionOn() ? 700 : 0);
   }
-  place(); upd();
+  sc.place(keeper); upd();
 }
 
 // ---- Moda: kart eşleştirme ----
@@ -171,7 +186,13 @@ function memory({ theme, ts, idx, root, msg, area, done }) {
     if (!first) { first = [c, b]; return; }
     moves += 1; lock = true;
     const [c0, b0] = first; first = null;
-    if (c0.it === c.it) { c0.ok = c.ok = true; b0.classList.add('matched'); b.classList.add('matched'); setTimeout(() => floatText(b, '✓', 'good'), 250); found += 1; lock = false; upd(); if (found === pairs.length) done(`Tebrikler! ${moves} hamlede bitirdin.`, Math.max(8, MAX - Math.max(0, moves - pairs.length) * 2), Math.min(1, pairs.length / moves)); return; }
+    if (c0.it === c.it) { c0.ok = c.ok = true; b0.classList.add('matched'); b.classList.add('matched'); setTimeout(() => { floatText(b, '✓', 'good'); burst(b, '✨', 6); }, 300); found += 1; lock = false; upd();
+      if (found === pairs.length) {
+        lock = true;
+        setTimeout(() => btns.forEach((q, i) => { q.style.setProperty('--i', String(i)); q.classList.add('win'); }), 500);
+        setTimeout(() => done(`Tebrikler! ${moves} hamlede bitirdin.`, Math.max(8, MAX - Math.max(0, moves - pairs.length) * 2), Math.min(1, pairs.length / moves)), 1500);
+      }
+      return; }
     setTimeout(() => { b0.classList.add('wrong'); b.classList.add('wrong'); }, 350);
     setTimeout(() => { c0.open = c.open = false; b0.classList.remove('open', 'wrong'); b.classList.remove('open', 'wrong'); lock = false; upd(); }, 800);
   }
@@ -187,13 +208,13 @@ function feed({ theme, ts, idx, root, msg, area, done }) {
   const grid = h('div', { class: 'mg-holes' }, ...holes);
   area.append(grid);
   const upd = () => { msg.textContent = `Süre: ${Math.ceil(time)} sn · Beslenen: ${score} · Kaçan: ${miss}`; };
-  holes.forEach((b) => b.addEventListener('click', () => { if (b.classList.contains('up')) { b.classList.remove('up', 'fed'); void b.offsetWidth; b.classList.add('fed'); setTimeout(() => b.replaceChildren(), 160); floatText(b, '+1 ❤', 'good'); score += 1; upd(); } }));
+  holes.forEach((b) => b.addEventListener('click', () => { if (b.classList.contains('up')) { b.classList.remove('up', 'fed'); void b.offsetWidth; b.classList.add('fed'); setTimeout(() => b.replaceChildren(), 160); floatText(b, '+1', 'good'); burst(b, '❤️', 5); score += 1; upd(); } }));
   const show = () => {
     const free = holes.filter((b) => !b.classList.contains('up'));
     if (!free.length) return;
     const b = free[rnd(0, free.length - 1)];
     b.replaceChildren(icon(pool[rnd(0, pool.length - 1)])); b.classList.add('up');
-    setTimeout(() => { if (b.classList.contains('up')) { b.classList.remove('up'); b.classList.remove('fed'); setTimeout(() => b.replaceChildren(), 160); miss += 1; } }, Math.max(650, 1400 - idx * 70));
+    setTimeout(() => { if (b.classList.contains('up')) { b.classList.remove('up'); b.classList.remove('fed'); setTimeout(() => b.replaceChildren(), 160); miss += 1; floatText(b, '💨', 'bad'); } }, Math.max(650, 1400 - idx * 70));
   };
   every(root, Math.max(420, 900 - idx * 50), () => { if (time > 0) show(); });
   every(root, 250, () => { time -= 0.25; upd(); if (time <= 0) { stopAll(); done(`Süre doldu! ${score} hayvanı besledin.`, score * 2, score + miss ? score / (score + miss) : 0); } });
@@ -208,26 +229,21 @@ function penaltyKeeper({ idx, root, msg, area, done }) {
   const cueOf = (p, target) => (Math.random() < p ? target : (target + rnd(1, 2)) % 3);
   let cue = { gaze: 0, run: 0, stance: 0 };
   let round = 0, saves = 0, t = 0, target = 0, dive = null, phase = 'wait';
-  const k = h('span', { class: 'mg-keeper' }, fromHTML(characterArt('gk', 2, 'Kaleci', 'ben', 70)));
-  const ball = h('span', { class: 'mg-ball' });
-  const mark = h('i', { class: 'mg-hint', hidden: true });
-  const zones = [0, 1, 2].map((z) => h('button', { class: 'mg-zone', type: 'button', 'aria-label': ['Sol köşe', 'Orta', 'Sağ köşe'][z], onClick: () => { if (phase === 'aim') { dive = z; k.style.left = `${z * 33.3 + 16.6}%`; zones.forEach((q, i) => q.classList.toggle('picked', i === z)); } } }));
+  const sc = penaltyScene({ keeperId: 'ben', keeperN: 2, onZone: (z) => { if (phase === 'aim') { dive = z; sc.place(z); sc.pick(z); } } });
   const track = (label) => { const dots = [0, 1, 2].map(() => h('i', { class: 'mg-dot' })); return { dots, el: h('div', { class: 'mg-cue' }, h('span', null, label), h('div', { class: 'mg-track' }, ...dots)) }; };
   const runCue = track('🏃 Koşu yönü');
   const stanceCue = track('🦶 Duruş');
   const light = (c, z) => c.dots.forEach((d, i) => d.classList.toggle('on', z === i));
-  const goalEl = h('div', { class: 'mg-goal' }, h('div', { class: 'mg-zones' }, ...zones), mark, k);
-  area.append(goalEl, ball, h('div', { class: 'mg-cues' }, runCue.el, stanceCue.el));
-  const place = (z) => { k.style.left = `${z * 33.3 + 16.6}%`; };
+  area.append(sc.el, h('div', { class: 'mg-cues' }, runCue.el, stanceCue.el));
   const upd = (txt) => { msg.textContent = `${txt} · Kalan şut: ${10 - round} · Kurtarış: ${saves}`; };
   const start = () => {
     if (!root.isConnected) return;
-    round += 1; t = 0; dive = null; target = rnd(0, 2); phase = 'aim'; place(1);
+    round += 1; t = 0; dive = null; target = rnd(0, 2); phase = 'aim';
+    sc.reset(); sc.place(1);
     cue = { gaze: cueOf(P.gaze, target), run: cueOf(P.run, target), stance: cueOf(P.stance, target) };
-    mark.style.left = `${cue.gaze * 33.3 + 16.6}%`; mark.hidden = false;
-    setTimeout(() => { mark.hidden = true; }, 700);
+    sc.showHint(cue.gaze);
+    setTimeout(() => sc.hideHint(), 700);
     light(runCue, null); light(stanceCue, null);
-    resetBall(ball); clearDive(k); zones.forEach((q) => q.classList.remove('picked'));
     upd('İpuçlarını izle: bakış, koşu, duruş. Köşeyi seç!');
   };
   every(root, 100, () => {
@@ -241,15 +257,14 @@ function penaltyKeeper({ idx, root, msg, area, done }) {
     phase = 'shot';
     const saved = dive === target;
     if (saved) saves += 1;
-    ball.style.left = `${target * 33.3 + 16.6}%`; ball.classList.add('fly');
-    k.classList.add(diveClass(dive === null ? 1 : dive));
-    setTimeout(() => shotFx(goalEl, saved ? 'KURTARDIN!' : 'GOL!', saved, saved), 350);
+    const n = round - 1;
     const mk = (z) => (z === target ? '✓' : '✗');
-    msg.textContent = `${saved ? 'KURTARDIN!' : 'Gol oldu!'} Bakış ${mk(cue.gaze)} · Koşu ${mk(cue.run)} · Duruş ${mk(cue.stance)}`;
-    setTimeout(() => {
-      resetBall(ball);
+    sc.shoot({ target, dive, goal: !saved, good: saved, text: saved ? 'KURTARDIN!' : 'GOL OLDU' }, () => {
+      if (!root.isConnected) return;
+      sc.mark(n, saved);
       if (round >= 10) { stopAll(); done(`Maç bitti: ${saves}/10 kurtarış.`, saves * 2, saves / 10); } else start();
-    }, 1000);
+    });
+    setTimeout(() => { if (root.isConnected && phase === 'shot') { if (saved) confetti(12); msg.textContent = `${saved ? 'KURTARDIN!' : 'Gol oldu!'} Bakış ${mk(cue.gaze)} · Koşu ${mk(cue.run)} · Duruş ${mk(cue.stance)}`; } }, motionOn() ? 700 : 0);
   });
-  place(1); start();
+  start();
 }

@@ -11,7 +11,8 @@ import { awardGameCoins } from '../../core/gameCoins.js';
 import { recordGame } from '../../core/gamePerf.js';
 import { fmtNumber } from '../../i18n/index.js';
 import { CONFIG } from '../../config.js';
-import { confetti, flyCoins, flyClone, floatText } from './effects.js';
+import { confetti, flyCoins, flyClone, floatText, burst } from './effects.js';
+import { motionOn } from '../dom.js';
 
 const CFG = {
   cafe: { parts: [{ cat: 'menu', n: [1, 3] }], cust: 'cafe', play: 'Siparişleri hazırla', ask: 'Müşteri bunları istiyor:', done: 'Afiyet olsun!' },
@@ -74,6 +75,20 @@ function rec(store, rate) {
   return store ? store.update((st) => recordGame(st, rate), { silent: true }) : null;
 }
 
+/** Telefon animasyonları kapattıysa oyunda küçük bir uyarı ve "aç" düğmesi gösterir. */
+function motionHint(store) {
+  const root = document.documentElement;
+  if (!store || root.dataset.motion !== 'off' || root.dataset.sysReduce !== '1' || store.get().settings.reduceMotion) return null;
+  const box = h('div', { class: 'sg-motion small' },
+    h('span', null, 'Telefonunda animasyonlar kapalı, bu yüzden oyun hareketleri görünmüyor.'),
+    h('button', { class: 'btn btn-primary', type: 'button', onClick: () => {
+      store.update((st) => { st.settings.forceMotion = true; }, { silent: true });
+      root.dataset.motion = 'on';
+      box.remove();
+    } }, 'Animasyonları aç'));
+  return box;
+}
+
 export function sceneBox(theme, ts, store) {
   const cfg = CFG[theme.id];
   const live = sceneFor(theme, ts);
@@ -89,7 +104,7 @@ export function sceneBox(theme, ts, store) {
     G.playing = false;
     box.replaceChildren(live,
       h('button', { class: 'btn btn-primary scene-play', type: 'button', onClick: () => { G.playing = true; showGame(); } }, `▶ ${cfg.play}`),
-      h('button', { class: 'btn btn-outline scene-play', type: 'button', onClick: () => box.replaceChildren(miniGame(theme, ts, lvl.index, showLive, (n) => pay(store, n), (r) => rec(store, r))) }, `★ ${MINI[theme.id].title}`));
+      h('button', { class: 'btn btn-outline scene-play', type: 'button', onClick: () => box.replaceChildren(...[motionHint(store), miniGame(theme, ts, lvl.index, showLive, (n) => pay(store, n), (r) => rec(store, r))].filter(Boolean)) }, `★ ${MINI[theme.id].title}`));
   };
 
   const showGame = () => {
@@ -106,9 +121,11 @@ export function sceneBox(theme, ts, store) {
     const reaction = h('span', { class: 'sg-react', 'aria-hidden': 'true' });
     const custWrap = h('span', { class: 'sg-cust', 'aria-hidden': 'true' });
     const bubble = h('div', { class: 'sg-bubble' }, h('p', { class: 'sg-ask small' }, cfg.ask), orderRow);
+    // Verilen eşyalar sahnede müşterinin önüne dizilir (futbolda oyuncular sahaya koşar).
+    const given = h('div', { class: `sg-given sg-given-${theme.id}`, 'aria-hidden': 'true' });
     const stage = stageFor(theme, [
       bubble,
-      custWrap, reaction,
+      custWrap, given, reaction,
       h('div', { class: 'sg-bar', role: 'progressbar', 'aria-label': 'Müşterinin sabrı' }, bar),
     ], `${theme.name}: servis oyunu`);
 
@@ -122,7 +139,9 @@ export function sceneBox(theme, ts, store) {
       got = new Set();
       left = PATIENCE;
       custWrap.replaceChildren(fromHTML(characterArt(cfg.cust, rnd(0, 9), '', `sg${Math.random()}`, 96)));
-      custWrap.classList.remove('leave', 'happy', 'impatient', 'enter'); void custWrap.offsetWidth; custWrap.classList.add('enter');
+      custWrap.classList.remove('leave', 'happy', 'impatient', 'enter', 'angry', 'exit'); void custWrap.offsetWidth; custWrap.classList.add('enter');
+      given.className = `sg-given sg-given-${theme.id}`; given.replaceChildren();
+      bubble.classList.remove('pop-in'); void bubble.offsetWidth; bubble.classList.add('pop-in');
       bar.style.width = '100%'; bar.style.background = ''; bar.classList.remove('low');
       orderRow.replaceChildren();
       tray.replaceChildren();
@@ -150,6 +169,9 @@ export function sceneBox(theme, ts, store) {
         G.score += stars * 10 + Math.min(G.streak, 10);
         G.best = Math.max(G.best, G.score);
         custWrap.classList.add('happy');
+        burst(custWrap, stars === 3 ? '⭐' : '❤️', stars === 3 ? 8 : 5);
+        // Müşteri (ve verilen eşyalar) mutlu mutlu çıkar.
+        setTimeout(() => { if (box.isConnected) { custWrap.classList.add('exit'); given.classList.add('exit'); } }, 650);
         reaction.replaceChildren(...Array.from({ length: stars }, () => fromHTML(STAR)));
         const got = pay(store, stars + 1);
         reaction.style.setProperty('--n', String(stars));
@@ -162,12 +184,14 @@ export function sceneBox(theme, ts, store) {
         G.streak = 0;
         G.missed += 1;
         rec(store, 0);
-        custWrap.classList.add('leave');
+        custWrap.classList.add('angry');
+        floatText(custWrap, '😠', 'bad');
+        setTimeout(() => { if (box.isConnected) custWrap.classList.add('leave'); given.classList.add('drop'); }, 500);
         reaction.replaceChildren();
         status.textContent = 'Müşteri sabredemedi ve gitti. Bir sonrakini yetiştir!';
       }
       refreshStats();
-      setTimeout(() => { if (box.isConnected && G.playing) nextCustomer(); }, ok ? 1100 : 1400);
+      setTimeout(() => { if (box.isConnected && G.playing) nextCustomer(); }, ok ? 1300 : 1500);
     };
 
     const tap = (it, btn) => {
@@ -175,7 +199,14 @@ export function sceneBox(theme, ts, store) {
       if (it === order.need[got.size]) {
         got.add(it.id);
         const slot = orderRow.querySelector(`[data-id="${it.id}"]`);
-        flyClone(btn, slot);
+        // Eşya tepsiden sahnedeki yerine uçar, inince zıplar.
+        const SPOTS = [24, 76, 11, 89, 37, 63, 7, 93, 30, 70];
+        const k = got.size - 1;
+        const spot = h('span', { class: 'sg-gift', style: { left: `${SPOTS[k % SPOTS.length]}%`, '--d': `${(k % 2 ? 1 : -1) * 40}%` } }, iconOf(it));
+        spot.style.visibility = 'hidden';
+        given.append(spot);
+        flyClone(btn, spot, 420);
+        setTimeout(() => { spot.style.visibility = ''; spot.classList.add('land'); }, motionOn() ? 400 : 0);
         btn.classList.add('ok');
         btn.disabled = true;
         slot.classList.add('done');
@@ -185,6 +216,9 @@ export function sceneBox(theme, ts, store) {
         G.streak = 0;
         btn.classList.add('bad');
         bubble.classList.add('wrong');
+        custWrap.classList.remove('no'); void custWrap.offsetWidth; custWrap.classList.add('no');
+        setTimeout(() => custWrap.classList.remove('no'), 450);
+        floatText(btn, '−4 sn', 'bad');
         setTimeout(() => { btn.classList.remove('bad'); bubble.classList.remove('wrong'); }, 400);
         status.textContent = order.need.includes(it) ? 'Sıra yanlış! Siparişi soldan sağa say.' : 'Bu değil! Sabır azaldı.';
         refreshStats();
@@ -203,7 +237,7 @@ export function sceneBox(theme, ts, store) {
       if (left <= 0) finish(false);
     }, 250);
 
-    box.replaceChildren(note, stage, status, tray, stats,
+    box.replaceChildren(...[motionHint(store), note].filter(Boolean), stage, status, tray, stats,
       h('button', { class: 'btn btn-outline scene-play', type: 'button', onClick: showLive }, 'Oyunu bitir'));
     nextCustomer();
   };

@@ -142,3 +142,7 @@ Kafe, moda ve barınak temaları baştan sona gezildi (kadro, mağaza verisi, el
 - Ortak yardımcılar `effects.js` içinde: `floatText` (yükselen yazı), `flyClone` (öğe uçurma), `confetti`, `flyCoins`.
 - Tower her 30 ms yeniden çizildiği için efektler ayrı `.mg-fx` katmanında durur.
 - Penaltı: kaleci vuruş yönüne dalar, top döner, file ve kale parlar. Servis oyunu: müşteri girişi, sabırsızlık sallanması, seri yazısı, altın uçuşu. Aynı kod dört temada da çalışır.
+- 2. tur (kullanıcı "daha güzel olsun" dedi): penaltı ayrı sahne dosyasında (`penaltyScene.js`): stadyum + tribün, direkli kale ve file, şutçu koşusu, kavisli top uçuşu (gölgeli, dönen), eldivenli kaleci dalışı, fileye gömülme / kurtarışta seken top, büyük "GOOOL!" yazısı, tribün zıplaması, 10 atışlık sonuç noktaları.
+- Servis oyununda verilen eşyalar sahneye iner (futbolda çağrılan oyuncular hocanın yanına koşar), mutlu müşteri eşyalarla çıkar, kızgın müşteri kızarıp ters yöne gider.
+- Tüm mini oyunların sonunda yıldızlı sonuç kartı (0-3 yıldız, para sayarak artar).
+- Telefon "animasyonları kaldır" diyorsa animasyonlar varsayılan kapalı; oyunda "Animasyonları aç" düğmesi ve ayarlarda "Animasyonları yine de göster" (settings.forceMotion) var.
