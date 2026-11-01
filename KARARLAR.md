@@ -107,3 +107,4 @@ Kafe, moda ve barınak temaları baştan sona gezildi (kadro, mağaza verisi, el
 - Zorluk seviyeye bağlı: seviye arttıkça sipariş büyür (2 seviyede +1 parça), tepsi 8'den 12 eşyaya çıkar, sabır 24 sn'den 12 sn'ye iner. Ekranda "Zorluk: n" görünür.
 - Servis oyunu zorlaştırıldı: sipariş soldan sağa SIRAYLA verilmeli (numaralı), sabır 18 sn'den 8 sn'ye iner, tepsi 16 eşyaya çıkar, yanlış dokunuş sabırdan 4 sn götürür.
 - Temaya özel ek oyunlar (src/ui/components/miniGames.js, sadece eğlence, para vermez): kafe pasta kulesi, futbol penaltı, moda kart eşleştirme, barınak hayvanları besle. Hepsi seviyeye göre zorlaşır.
+- Oyunlar küçük para verir (src/core/gameCoins.js): servis oyunu müşteri başına 2-4, ek oyunlar tur başına en çok 20. Günlük tavan 100 oyun parası (yaklaşık 1 Pomodoro = 100). Asıl kazanç odaklanmadan gelir; sayılar src/config.js içinde (miniGameMaxCoins, dailyGameCoinCap).

@@ -7,6 +7,9 @@ import { propArt } from '../../assets/props.js';
 import { sceneFor, stageFor } from './scenes.js';
 import { levelInfo, totalPower } from '../../core/economy.js';
 import { miniGame, MINI } from './miniGames.js';
+import { awardGameCoins } from '../../core/gameCoins.js';
+import { fmtNumber } from '../../i18n/index.js';
+import { CONFIG } from '../../config.js';
 
 const CFG = {
   cafe: { parts: [{ cat: 'menu', n: [1, 3] }], cust: 'cafe', play: 'Siparişleri hazırla', ask: 'Müşteri bunları istiyor:', done: 'Afiyet olsun!' },
@@ -55,7 +58,16 @@ function makeOrder(theme, ts, cfg, d) {
 }
 
 /** Dünyam ekranındaki sahne kutusu: normalde canlı sahne + "Oyna" düğmesi; oyun açıkken servis oyunu. */
-export function sceneBox(theme, ts) {
+/** Oyun parası ver (ekranı yeniden çizmeden): cüzdanı kaydet, üstteki para sayacını güncelle. */
+function pay(store, amount) {
+  if (!store) return 0;
+  const give = store.update((st) => awardGameCoins(st, amount), { silent: true });
+  const el = document.getElementById('coin-value');
+  if (el && give > 0) el.textContent = fmtNumber(store.get().wallet.coins);
+  return give;
+}
+
+export function sceneBox(theme, ts, store) {
   const cfg = CFG[theme.id];
   const live = sceneFor(theme, ts);
   if (!cfg || !live) return live;
@@ -70,7 +82,7 @@ export function sceneBox(theme, ts) {
     G.playing = false;
     box.replaceChildren(live,
       h('button', { class: 'btn btn-primary scene-play', type: 'button', onClick: () => { G.playing = true; showGame(); } }, `▶ ${cfg.play}`),
-      h('button', { class: 'btn btn-outline scene-play', type: 'button', onClick: () => box.replaceChildren(miniGame(theme, ts, lvl.index, showLive)) }, `★ ${MINI[theme.id].title}`));
+      h('button', { class: 'btn btn-outline scene-play', type: 'button', onClick: () => box.replaceChildren(miniGame(theme, ts, lvl.index, showLive, (n) => pay(store, n))) }, `★ ${MINI[theme.id].title}`));
   };
 
   const showGame = () => {
@@ -128,7 +140,8 @@ export function sceneBox(theme, ts) {
         G.best = Math.max(G.best, G.score);
         custWrap.classList.add('happy');
         reaction.replaceChildren(...Array.from({ length: stars }, () => fromHTML(STAR)));
-        status.textContent = `${cfg.done} ${'★'.repeat(stars)}`;
+        const got = pay(store, stars + 1);
+        status.textContent = `${cfg.done} ${'★'.repeat(stars)}${got ? ` +${got} ${theme.currency.name}` : ' (bugünkü oyun parası doldu)'}`;
       } else {
         G.streak = 0;
         G.missed += 1;

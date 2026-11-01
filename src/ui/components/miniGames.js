@@ -3,6 +3,7 @@
 import { h, fromHTML } from '../dom.js';
 import { characterArt } from '../../assets/art.js';
 import { propArt } from '../../assets/props.js';
+import { CONFIG } from '../../config.js';
 
 export const MINI = {
   cafe: { title: 'Pasta kulesi', how: 'Hareket eden katmanı doğru anda "Bırak" ile üstüne koy. Taşan kısım kesilir, kule yükseldikçe hızlanır.' },
@@ -11,6 +12,7 @@ export const MINI = {
   shelter: { title: 'Hayvanları besle', how: '30 saniyen var. Yuvalardan çıkan hayvanlara dokunarak onları besle, kaçırma!' },
 };
 
+const MAX = CONFIG.economy.miniGameMaxCoins;
 const rnd = (a, b) => a + Math.floor(Math.random() * (b - a + 1));
 const shuffle = (a) => a.map((v) => [Math.random(), v]).sort((x, y) => x[0] - y[0]).map((x) => x[1]);
 const icon = (it) => fromHTML(propArt(it.id) || characterArt('cafe', 0, '', it.id, 64));
@@ -25,7 +27,7 @@ function every(root, ms, fn) {
   stopFn = () => { clearInterval(id); if (prev) prev(); };
 }
 
-export function miniGame(theme, ts, idx, back) {
+export function miniGame(theme, ts, idx, back, pay = () => 0) {
   stopAll();
   const info = MINI[theme.id];
   const root = h('div', { class: 'mg' });
@@ -35,7 +37,7 @@ export function miniGame(theme, ts, idx, back) {
   const exit = h('button', { class: 'btn btn-outline', type: 'button', onClick: () => { stopAll(); back(); } }, 'Geri dön');
   root.append(h('h3', { class: 'mg-title' }, info.title), msg, area, h('div', { class: 'mg-btns' }, startBtn, exit));
   const GAMES = { cafe: tower, football: penalty, fashion: memory, shelter: feed };
-  const ctx = { theme, ts, idx, root, msg, area, startBtn, done: (t) => { msg.textContent = t; startBtn.textContent = 'Tekrar oyna'; startBtn.hidden = false; } };
+  const ctx = { theme, ts, idx, root, msg, area, startBtn, done: (t, coins = 0) => { const got = coins > 0 ? pay(Math.min(coins, MAX)) : 0; msg.textContent = coins > 0 ? `${t} ${got ? `+${got} ${theme.currency.name}` : '(bugünkü oyun parası doldu)'}` : t; startBtn.textContent = 'Tekrar oyna'; startBtn.hidden = false; } };
   startBtn.addEventListener('click', () => { stopAll(); area.replaceChildren(); startBtn.hidden = true; GAMES[theme.id](ctx); });
   return root;
 }
@@ -63,7 +65,7 @@ function tower({ theme, ts, idx, root, msg, area, done }) {
     if (over) return;
     const last = layers[layers.length - 1];
     const l = Math.max(x, last.x), r = Math.min(x + w, last.x + last.w);
-    if (r - l <= 1) { over = true; draw(); stopAll(); drop.hidden = true; done(`Kule yıkıldı! ${layers.length - 1} kat yaptın.`); return; }
+    if (r - l <= 1) { over = true; draw(); stopAll(); drop.hidden = true; done(`Kule yıkıldı! ${layers.length - 1} kat yaptın.`, (layers.length - 1) * 2); return; }
     layers.push({ x: l, w: r - l }); w = r - l; x = 0; dir = 1;
   });
   draw();
@@ -89,7 +91,7 @@ function penalty({ theme, idx, root, msg, area, done }) {
     msg.textContent = g ? 'GOL!' : 'Kaleci kurtardı!';
     setTimeout(() => {
       ball.classList.remove('fly'); ball.style.left = '50%'; busy = false;
-      if (shots <= 0) { stopAll(); done(`Maç bitti: ${goals}/5 gol.`); } else upd();
+      if (shots <= 0) { stopAll(); done(`Maç bitti: ${goals}/5 gol.`, goals * 4); } else upd();
     }, 900);
   }
   place(); upd();
@@ -115,7 +117,7 @@ function memory({ theme, ts, idx, root, msg, area, done }) {
     if (!first) { first = [c, b]; return; }
     moves += 1; lock = true;
     const [c0, b0] = first; first = null;
-    if (c0.it === c.it) { c0.ok = c.ok = true; found += 1; lock = false; upd(); if (found === pairs.length) done(`Tebrikler! ${moves} hamlede bitirdin.`); return; }
+    if (c0.it === c.it) { c0.ok = c.ok = true; found += 1; lock = false; upd(); if (found === pairs.length) done(`Tebrikler! ${moves} hamlede bitirdin.`, Math.max(8, MAX - Math.max(0, moves - pairs.length) * 2)); return; }
     setTimeout(() => { c0.open = c.open = false; b0.classList.remove('open'); b.classList.remove('open'); lock = false; upd(); }, 700);
   }
   upd();
@@ -139,6 +141,6 @@ function feed({ theme, ts, idx, root, msg, area, done }) {
     setTimeout(() => { if (b.classList.contains('up')) { b.classList.remove('up'); b.replaceChildren(); miss += 1; } }, Math.max(650, 1400 - idx * 70));
   };
   every(root, Math.max(420, 900 - idx * 50), () => { if (time > 0) show(); });
-  every(root, 250, () => { time -= 0.25; upd(); if (time <= 0) { stopAll(); done(`Süre doldu! ${score} hayvanı besledin.`); } });
+  every(root, 250, () => { time -= 0.25; upd(); if (time <= 0) { stopAll(); done(`Süre doldu! ${score} hayvanı besledin.`, score * 2); } });
   upd();
 }

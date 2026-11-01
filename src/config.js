@@ -31,6 +31,8 @@ export const CONFIG = {
     setBonus: 50,
     taskBonus: 5,
     dailyRewardedCap: 8, // Günde en çok 8 Pomodoro para verir
+    miniGameMaxCoins: 20, // Bir ek oyun turundan en çok bu kadar para
+    dailyGameCoinCap: 100, // Oyunlardan günde en çok bu kadar (yaklaşık 1 Pomodoro)
     sleepReminderHour: 23,
     sleepReminderEndHour: 5,
   },

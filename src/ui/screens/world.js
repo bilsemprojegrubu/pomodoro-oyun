@@ -177,7 +177,7 @@ export function mount(root, ctx) {
 
   root.append(h('div', { class: 'stack' },
     header,
-    sceneBox(theme, ts),
+    sceneBox(theme, ts, ctx.store),
     ts.owned.length === 0
       ? h('div', { class: 'card empty-state' },
           h('p', { class: 'emoji-big', 'aria-hidden': 'true' }, theme.icon),
