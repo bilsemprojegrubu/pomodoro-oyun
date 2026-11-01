@@ -137,3 +137,11 @@ describe('e-posta', () => {
     expect(validEmail('ali gmail.com')).toBe(false);
   });
 });
+
+describe('errorText sayısal kod', () => {
+  it('code=422 olsa da error_code ve msg kullanılır', () => {
+    expect(errorText({ code: 422, error_code: 'user_already_exists', msg: 'User already registered' })).toMatch(/alınmış/);
+    expect(errorText({ code: 422, error_code: 'weak_password', msg: 'Password should be at least 8 characters' })).toMatch(/zayıf/);
+    expect(errorText({ code: 400, error_code: 'email_address_invalid', msg: 'Email address is invalid' })).toContain('email_address_invalid');
+  });
+});

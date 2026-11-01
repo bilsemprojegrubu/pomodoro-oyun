@@ -22,12 +22,15 @@ export const fakeEmail = (username) => `${username}@${C.emailDomain}`;
 /** Sunucu hatasını Türkçe kısa mesaja çevirir. */
 export function errorText(err) {
   if (err && err.offline) return 'İnternet bağlantısı yok. Sonra tekrar dene.';
-  const m = String((err && (err.code || err.msg || err.message || err.error_description)) || '').toLowerCase();
+  // Supabase bazen "code" alanına sayı (422) koyar; asıl neden error_code ve msg içindedir.
+  const parts = err ? [err.error_code, err.code, err.msg, err.message, err.error_description, err.error] : [];
+  const m = parts.filter((x) => x !== undefined && x !== null).map(String).join(' ').toLowerCase();
   if (m.includes('already') || m.includes('exists')) return 'Bu kullanıcı adı alınmış. Başka bir ad dene.';
   if (m.includes('invalid_credentials') || m.includes('invalid login')) return 'Kullanıcı adı veya şifre yanlış.';
   if (m.includes('weak') || m.includes('password')) return 'Şifre çok zayıf. Daha uzun bir şifre dene.';
   if (m.includes('cok_fazla') || m.includes('rate') || m.includes('too many') || m.includes('429')) return 'Çok fazla deneme yapıldı. Biraz bekle.';
-  const detail = String((err && (err.code || err.error_code || err.msg || err.message)) || '').slice(0, 80);
+  const detail = [err && err.error_code, err && (err.msg || err.message), err && err.code].filter((x) => x !== undefined && x !== null && x !== '')
+    .map(String).filter((x, i, a) => a.indexOf(x) === i).join(' · ').slice(0, 100);
   return `Bir sorun oluştu. Sonra tekrar dene.${detail ? ` (${detail})` : ''}`;
 }
 
