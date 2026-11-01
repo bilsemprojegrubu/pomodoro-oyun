@@ -7,7 +7,7 @@ import { CONFIG } from '../../config.js';
 
 export const MINI = {
   cafe: { title: 'Pasta kulesi', how: 'Hareket eden katmanı doğru anda "Bırak" ile üstüne koy. Taşan kısım kesilir, kule yükseldikçe hızlanır.' },
-  football: { title: 'Penaltı atışları', how: '10 şutun var. Kaleci hareket ediyor: o an durmadığı köşeyi seç ve vur!' },
+  football: { title: 'Penaltı atışları', how: '10 şutun var. Kaleci hareket ediyor: o an durmadığı köşeyi seç ve vur! (Kaleci modunda üç ipucu vardır: bakış, koşu yönü, duruş.)' },
   fashion: { title: 'Kombin eşleştirme', how: 'Kartları çevir, aynı olan çiftleri bul. Az hamlede bitir!' },
   shelter: { title: 'Hayvanları besle', how: '30 saniyen var. Yuvalardan çıkan hayvanlara dokunarak onları besle, kaçırma!' },
 };
@@ -163,33 +163,46 @@ function feed({ theme, ts, idx, root, msg, area, done }) {
 // ---- Futbol: kaleci modu (rakip şut çeker, sen köşeyi seçip kurtarırsın) ----
 function penaltyKeeper({ idx, root, msg, area, done }) {
   const AIM = Math.max(1000, 2200 - idx * 130); // şuttan önce karar verme süresi
-  const trust = Math.max(0.35, 1 - idx * 0.08); // rakibin bakışının doğru olma ihtimali
+  // Üç ipucu var, her birinin doğru olma ihtimali ayrı: bakış (sarı çember), koşu yönü, duruş.
+  const P = { gaze: Math.max(0.35, 1 - idx * 0.08), run: Math.max(0.5, 0.9 - idx * 0.05), stance: Math.max(0.45, 0.8 - idx * 0.04) };
+  const cueOf = (p, target) => (Math.random() < p ? target : (target + rnd(1, 2)) % 3);
+  let cue = { gaze: 0, run: 0, stance: 0 };
   let round = 0, saves = 0, t = 0, target = 0, dive = null, phase = 'wait';
   const k = h('span', { class: 'mg-keeper' }, fromHTML(characterArt('gk', 2, 'Kaleci', 'ben', 70)));
   const ball = h('span', { class: 'mg-ball' });
   const mark = h('i', { class: 'mg-hint', hidden: true });
   const zones = [0, 1, 2].map((z) => h('button', { class: 'mg-zone', type: 'button', 'aria-label': ['Sol köşe', 'Orta', 'Sağ köşe'][z], onClick: () => { if (phase === 'aim') { dive = z; k.style.left = `${z * 33.3 + 16.6}%`; } } }));
-  area.append(h('div', { class: 'mg-goal' }, h('div', { class: 'mg-zones' }, ...zones), mark, k), ball);
+  const track = (label) => { const dots = [0, 1, 2].map(() => h('i', { class: 'mg-dot' })); return { dots, el: h('div', { class: 'mg-cue' }, h('span', null, label), h('div', { class: 'mg-track' }, ...dots)) }; };
+  const runCue = track('🏃 Koşu yönü');
+  const stanceCue = track('🦶 Duruş');
+  const light = (c, z) => c.dots.forEach((d, i) => d.classList.toggle('on', z === i));
+  area.append(h('div', { class: 'mg-goal' }, h('div', { class: 'mg-zones' }, ...zones), mark, k), ball, h('div', { class: 'mg-cues' }, runCue.el, stanceCue.el));
   const place = (z) => { k.style.left = `${z * 33.3 + 16.6}%`; };
   const upd = (txt) => { msg.textContent = `${txt} · Kalan şut: ${10 - round} · Kurtarış: ${saves}`; };
   const start = () => {
     if (!root.isConnected) return;
     round += 1; t = 0; dive = null; target = rnd(0, 2); phase = 'aim'; place(1);
-    const shown = Math.random() < trust ? target : (target + rnd(1, 2)) % 3;
-    mark.style.left = `${shown * 33.3 + 16.6}%`; mark.hidden = false;
+    cue = { gaze: cueOf(P.gaze, target), run: cueOf(P.run, target), stance: cueOf(P.stance, target) };
+    mark.style.left = `${cue.gaze * 33.3 + 16.6}%`; mark.hidden = false;
     setTimeout(() => { mark.hidden = true; }, 700);
+    light(runCue, null); light(stanceCue, null);
     ball.style.left = '50%';
-    upd('Rakibin bakışını izle, köşeyi seç!');
+    upd('İpuçlarını izle: bakış, koşu, duruş. Köşeyi seç!');
   };
   every(root, 100, () => {
     if (phase !== 'aim') return;
     t += 100;
+    if (t === 200) light(runCue, cue.run);
+    if (t === 200 + 900) light(runCue, null);
+    if (t === Math.round(AIM * 0.4 / 100) * 100) light(stanceCue, cue.stance);
+    if (t === Math.round(AIM * 0.4 / 100) * 100 + 800) light(stanceCue, null);
     if (t < AIM) return;
     phase = 'shot';
     const saved = dive === target;
     if (saved) saves += 1;
     ball.style.left = `${target * 33.3 + 16.6}%`; ball.classList.add('fly');
-    msg.textContent = saved ? 'KURTARDIN!' : 'Gol oldu!';
+    const mk = (z) => (z === target ? '✓' : '✗');
+    msg.textContent = `${saved ? 'KURTARDIN!' : 'Gol oldu!'} Bakış ${mk(cue.gaze)} · Koşu ${mk(cue.run)} · Duruş ${mk(cue.stance)}`;
     setTimeout(() => {
       ball.classList.remove('fly'); ball.style.left = '50%';
       if (round >= 10) { stopAll(); done(`Maç bitti: ${saves}/10 kurtarış.`, saves * 2, saves / 10); } else start();

@@ -135,3 +135,8 @@ Kafe, moda ve barınak temaları baştan sona gezildi (kadro, mağaza verisi, el
 - Şifre sıfırlama ELLE: kullanıcı kayıtlı adresinden proje adresine yazar, sahibi Supabase panelinden (Authentication > Users) şifreyi sıfırlar. Kayıtlı e-postayı panelde Table Editor > contacts'tan doğrula.
 - Otomatik sıfırlama için ayrı SMTP servisi gerekir (Supabase'in varsayılan gönderimi sadece ekip üyelerine gider). Sonraki adım.
 - `CONFIG.cloud.contactEmail` boş; doldurulursa "Şifremi unuttum" ekranında gösterilir.
+
+## Kaleci modu ipuçları
+- Penaltı ve kalecilikte 10 şut, gol/kurtarış başı 2 altın.
+- Rakibin yönünü okumak için üç bağımsız ipucu var: bakış (sarı çember), koşu yönü, duruş. Her birinin güvenilirliği ayrı (`P.gaze`, `P.run`, `P.stance`) ve zorlukla (şut sırasıyla) düşer; alt sınırlar 0.35 / 0.5 / 0.45.
+- Her şuttan sonra "Bakış ✓/✗ · Koşu ✓/✗ · Duruş ✓/✗" yazılır; oyuncu hangi ipucuna güvenmesi gerektiğini öğrenir.

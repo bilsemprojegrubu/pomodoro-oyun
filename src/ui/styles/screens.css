@@ -225,3 +225,9 @@ body.focus-mode .ambient { position: fixed; inset: 0; border-radius: 0; }
 .mg-note, .sg-note { margin: 0; text-align: center; }
 .mg-hint { position: absolute; top: 40%; width: 18%; aspect-ratio: 1; transform: translate(-50%, -50%); border: 4px solid #ffd33d; border-radius: 50%; pointer-events: none; z-index: 3; }
 .mg-btns .btn[hidden] { display: none; }
+
+.mg-cues { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; margin-top: 0.5rem; }
+.mg-cue { display: grid; gap: 0.3rem; padding: 0.4rem 0.5rem; border-radius: 12px; border: 1px solid var(--border); font-size: 0.85rem; text-align: center; }
+.mg-track { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.3rem; }
+.mg-dot { height: 10px; border-radius: 5px; background: var(--border); }
+.mg-dot.on { background: #ffd33d; box-shadow: 0 0 0 2px #b8941f; }
