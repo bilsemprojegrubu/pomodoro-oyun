@@ -41,6 +41,9 @@ function showMatch(ctx, theme, match) {
       h('h4', null, t('friendly.analysisTitle')),
       h('p', null, t('friendly.power', { team: fmtNumber(match.power), mine: fmtNumber(match.score), opp: fmtNumber(match.opp) })),
       match.minutes > 0 ? h('p', { class: 'small muted' }, t('friendly.effort', { time: fmtMinutes(match.minutes) })) : null,
+      match.game ? h('p', { class: 'small' }, match.game.games
+        ? `Oyun başarın: %${Math.round(match.game.rate * 100)} (${match.game.games} tur). Skorun %${match.game.pct} değişti.`
+        : `Bugün oyun oynamadın. Skorun %${match.game.pct} değişti. Oyunlarda başarılı olursan bu azalır.`) : null,
       h('p', { class: 'small' }, t('friendly.lines')),
       h('ul', { class: 'small' }, a.lines.map((l) => h('li', null, t('friendly.line', { role: l.role, percent: l.percent })))),
       a.perfect

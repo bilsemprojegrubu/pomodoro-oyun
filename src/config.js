@@ -60,6 +60,8 @@ export const CONFIG = {
     loseCoins: 0,
     maxPerDay: 3, // Günde en fazla bu kadar maç; her maç için o gün tamamlanmış bir Pomodoro gerekir
     randomness: 0.1,
+    // Oyun başarısının günün özetindeki skora etkisi (yüzde): hiç oyun yok, hepsi başarısız, hepsi başarılı.
+    gameEffect: { none: -15, worst: -20, best: 0 },
   },
 
   // Seviye eşikleri, tema gücünün en yüksek değerinin oranı olarak (araçlar/temalari-uret.mjs)

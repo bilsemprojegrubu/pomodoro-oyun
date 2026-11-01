@@ -2,6 +2,7 @@
 // Para farm'lanamasın diye her maç için o gün tamamlanmış bir Pomodoro gerekir (günde en fazla 3 maç).
 import { CONFIG } from '../config.js';
 import { dayKey, seededRandom } from './dates.js';
+import { gameEffect } from './gamePerf.js';
 import { equippedIds, levelInfo, slotsOf, themeState, totalPower } from './economy.js';
 
 const F = CONFIG.friendly;
@@ -71,17 +72,18 @@ export function matchStatus(state, theme, now) {
 }
 
 /** Saf hesap: aynı gün + aynı maç sırası her zaman aynı sonucu verir. */
-export function simulateFriendly({ theme, power, minutes, day, n }) {
+export function simulateFriendly({ theme, power, minutes, day, n, game = null }) {
   const rng = seededRandom(`f|${theme.id}|${day}|${n}`);
   const opp = levelInfo(theme, power).current.opponentPower;
   const noise = 1 + (rng() * 2 - 1) * F.randomness;
-  const score = Math.round((power + minutes * W.minuteBonus) * noise);
+  const effect = game ? game.pct : 0; // Oyun başarısı etkisi (yüzde); game verilmezse etki yok
+  const score = Math.round((power + minutes * W.minuteBonus) * noise * (1 + effect / 100));
   const ratio = opp > 0 ? score / opp : 2;
   let result = 'draw';
   if (ratio > 1 + W.winMargin) result = 'win';
   else if (ratio < 1 - W.winMargin) result = 'lose';
   const coins = result === 'win' ? F.winCoins : result === 'draw' ? F.drawCoins : F.loseCoins;
-  return { result, score, opp, coins, power, minutes };
+  return { result, score, opp, coins, power, minutes, game };
 }
 
 /** Analiz: en güçlü ve en zayıf hat, rakibe göre fark. */
@@ -107,7 +109,8 @@ export function playMatch(state, theme, now) {
   const day = dayKey(now);
   const minutes = (state.daily[day] && state.daily[day].minutes) || 0;
   const power = totalPower(theme, ts.owned, ts);
-  const sim = simulateFriendly({ theme, power, minutes, day, n: st.done });
+  const game = gameEffect(state.daily[day]);
+  const sim = simulateFriendly({ theme, power, minutes, day, n: st.done, game });
   const match = { themeId: theme.id, day, at: now, ...sim, analysis: analyze(st.lineup, sim) };
   state.wallet.coins += match.coins;
   state.wallet.earnedTotal += match.coins;

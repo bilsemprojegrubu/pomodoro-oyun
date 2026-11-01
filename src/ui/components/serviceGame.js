@@ -8,6 +8,7 @@ import { sceneFor, stageFor } from './scenes.js';
 import { levelInfo, totalPower } from '../../core/economy.js';
 import { miniGame, MINI } from './miniGames.js';
 import { awardGameCoins } from '../../core/gameCoins.js';
+import { recordGame } from '../../core/gamePerf.js';
 import { fmtNumber } from '../../i18n/index.js';
 import { CONFIG } from '../../config.js';
 
@@ -67,6 +68,11 @@ function pay(store, amount) {
   return give;
 }
 
+/** Oyun başarısını günün özeti için kaydet (ekranı yenilemeden). */
+function rec(store, rate) {
+  return store ? store.update((st) => recordGame(st, rate), { silent: true }) : null;
+}
+
 export function sceneBox(theme, ts, store) {
   const cfg = CFG[theme.id];
   const live = sceneFor(theme, ts);
@@ -82,7 +88,7 @@ export function sceneBox(theme, ts, store) {
     G.playing = false;
     box.replaceChildren(live,
       h('button', { class: 'btn btn-primary scene-play', type: 'button', onClick: () => { G.playing = true; showGame(); } }, `▶ ${cfg.play}`),
-      h('button', { class: 'btn btn-outline scene-play', type: 'button', onClick: () => box.replaceChildren(miniGame(theme, ts, lvl.index, showLive, (n) => pay(store, n))) }, `★ ${MINI[theme.id].title}`));
+      h('button', { class: 'btn btn-outline scene-play', type: 'button', onClick: () => box.replaceChildren(miniGame(theme, ts, lvl.index, showLive, (n) => pay(store, n), (r) => rec(store, r))) }, `★ ${MINI[theme.id].title}`));
   };
 
   const showGame = () => {
@@ -104,6 +110,7 @@ export function sceneBox(theme, ts, store) {
       h('div', { class: 'sg-bar', role: 'progressbar', 'aria-label': 'Müşterinin sabrı' }, bar),
     ], `${theme.name}: servis oyunu`);
 
+    const note = h('p', { class: 'small muted sg-note' }, 'Bu oyun günün özetini etkiler: her kaçırdığın müşteri skoru düşürür.');
     const refreshStats = () => stats.replaceChildren(`Zorluk: ${lvl.index + 1} · Mutlu müşteri: ${G.served} · Seri: ${G.streak} · Puan: ${G.score}`);
 
     const nextCustomer = () => {
@@ -136,6 +143,7 @@ export function sceneBox(theme, ts, store) {
         const stars = frac > 0.6 ? 3 : frac > 0.3 ? 2 : 1;
         G.streak += 1;
         G.served += 1;
+        rec(store, 1);
         G.score += stars * 10 + Math.min(G.streak, 10);
         G.best = Math.max(G.best, G.score);
         custWrap.classList.add('happy');
@@ -145,6 +153,7 @@ export function sceneBox(theme, ts, store) {
       } else {
         G.streak = 0;
         G.missed += 1;
+        rec(store, 0);
         custWrap.classList.add('leave');
         reaction.replaceChildren();
         status.textContent = 'Müşteri sabredemedi ve gitti. Bir sonrakini yetiştir!';
@@ -180,7 +189,7 @@ export function sceneBox(theme, ts, store) {
       if (left <= 0) finish(false);
     }, 250);
 
-    box.replaceChildren(stage, status, tray, stats,
+    box.replaceChildren(note, stage, status, tray, stats,
       h('button', { class: 'btn btn-outline scene-play', type: 'button', onClick: showLive }, 'Oyunu bitir'));
     nextCustomer();
   };

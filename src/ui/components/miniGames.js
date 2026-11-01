@@ -27,7 +27,7 @@ function every(root, ms, fn) {
   stopFn = () => { clearInterval(id); if (prev) prev(); };
 }
 
-export function miniGame(theme, ts, idx, back, pay = () => 0) {
+export function miniGame(theme, ts, idx, back, pay = () => 0, record = () => null) {
   stopAll();
   const info = MINI[theme.id];
   const root = h('div', { class: 'mg' });
@@ -35,10 +35,23 @@ export function miniGame(theme, ts, idx, back, pay = () => 0) {
   const area = h('div', { class: 'mg-area' });
   const startBtn = h('button', { class: 'btn btn-primary', type: 'button' }, 'Başla');
   const exit = h('button', { class: 'btn btn-outline', type: 'button', onClick: () => { stopAll(); back(); } }, 'Geri dön');
-  root.append(h('h3', { class: 'mg-title' }, info.title), msg, area, h('div', { class: 'mg-btns' }, startBtn, exit));
+  root.append(h('h3', { class: 'mg-title' }, info.title), h('p', { class: 'small mg-note' }, 'Bu oyun günün özetini etkiler: başarılı olursan skorun düşmez.'), msg, area, h('div', { class: 'mg-btns' }, startBtn, exit));
   const GAMES = { cafe: tower, football: penalty, fashion: memory, shelter: feed };
-  const ctx = { theme, ts, idx, root, msg, area, startBtn, done: (t, coins = 0) => { const got = coins > 0 ? pay(Math.min(coins, MAX)) : 0; msg.textContent = coins > 0 ? `${t} ${got ? `+${got} ${theme.currency.name}` : '(bugünkü oyun parası doldu)'}` : t; startBtn.textContent = 'Tekrar oyna'; startBtn.hidden = false; } };
-  startBtn.addEventListener('click', () => { stopAll(); area.replaceChildren(); startBtn.hidden = true; GAMES[theme.id](ctx); });
+  const keeperBtn = theme.id === 'football' ? h('button', { class: 'btn btn-primary', type: 'button' }, 'Kaleci olarak başla') : null;
+  if (keeperBtn) { startBtn.textContent = 'Şutçu olarak başla'; root.querySelector('.mg-btns').prepend(keeperBtn); }
+  const ctx = { theme, ts, idx, root, msg, area, startBtn, mode: 'shoot',
+    // done(metin, para, başarı 0-1): para ve günün özeti kaydı
+    done: (t, coins = 0, rate = null) => {
+      const got = coins > 0 ? pay(Math.min(coins, MAX)) : 0;
+      const eff = rate === null ? null : record(rate);
+      msg.textContent = [t, coins > 0 ? (got ? `+${got} ${theme.currency.name}` : '(bugünkü oyun parası doldu)') : '',
+        eff ? `Başarın %${Math.round(rate * 100)}. Günün özeti skoru şu an %${eff.pct}.` : ''].filter(Boolean).join(' ');
+      startBtn.textContent = keeperBtn ? 'Şutçu olarak tekrar' : 'Tekrar oyna'; startBtn.hidden = false;
+      if (keeperBtn) { keeperBtn.textContent = 'Kaleci olarak tekrar'; keeperBtn.hidden = false; }
+    } };
+  const go = (mode) => { stopAll(); ctx.mode = mode; area.replaceChildren(); startBtn.hidden = true; if (keeperBtn) keeperBtn.hidden = true; GAMES[theme.id](ctx); };
+  startBtn.addEventListener('click', () => go('shoot'));
+  if (keeperBtn) keeperBtn.addEventListener('click', () => go('keep'));
   return root;
 }
 
@@ -65,14 +78,16 @@ function tower({ theme, ts, idx, root, msg, area, done }) {
     if (over) return;
     const last = layers[layers.length - 1];
     const l = Math.max(x, last.x), r = Math.min(x + w, last.x + last.w);
-    if (r - l <= 1) { over = true; draw(); stopAll(); drop.hidden = true; done(`Kule yıkıldı! ${layers.length - 1} kat yaptın.`, (layers.length - 1) * 2); return; }
+    if (r - l <= 1) { over = true; draw(); stopAll(); drop.hidden = true; done(`Kule yıkıldı! ${layers.length - 1} kat yaptın.`, (layers.length - 1) * 2, Math.min(1, (layers.length - 1) / 10)); return; }
     layers.push({ x: l, w: r - l }); w = r - l; x = 0; dir = 1;
   });
   draw();
 }
 
 // ---- Futbol: penaltı ----
-function penalty({ theme, idx, root, msg, area, done }) {
+function penalty(c) {
+  if (c.mode === 'keep') return penaltyKeeper(c);
+  const { idx, root, msg, area, done } = c;
   let keeper = 1, shots = 5, goals = 0, busy = false;
   const k = h('span', { class: 'mg-keeper' }, fromHTML(characterArt('gk', 1, 'Kaleci', 'kaleci', 70)));
   const ball = h('span', { class: 'mg-ball' });
@@ -91,7 +106,7 @@ function penalty({ theme, idx, root, msg, area, done }) {
     msg.textContent = g ? 'GOL!' : 'Kaleci kurtardı!';
     setTimeout(() => {
       ball.classList.remove('fly'); ball.style.left = '50%'; busy = false;
-      if (shots <= 0) { stopAll(); done(`Maç bitti: ${goals}/5 gol.`, goals * 4); } else upd();
+      if (shots <= 0) { stopAll(); done(`Maç bitti: ${goals}/5 gol.`, goals * 4, goals / 5); } else upd();
     }, 900);
   }
   place(); upd();
@@ -117,7 +132,7 @@ function memory({ theme, ts, idx, root, msg, area, done }) {
     if (!first) { first = [c, b]; return; }
     moves += 1; lock = true;
     const [c0, b0] = first; first = null;
-    if (c0.it === c.it) { c0.ok = c.ok = true; found += 1; lock = false; upd(); if (found === pairs.length) done(`Tebrikler! ${moves} hamlede bitirdin.`, Math.max(8, MAX - Math.max(0, moves - pairs.length) * 2)); return; }
+    if (c0.it === c.it) { c0.ok = c.ok = true; found += 1; lock = false; upd(); if (found === pairs.length) done(`Tebrikler! ${moves} hamlede bitirdin.`, Math.max(8, MAX - Math.max(0, moves - pairs.length) * 2), Math.min(1, pairs.length / moves)); return; }
     setTimeout(() => { c0.open = c.open = false; b0.classList.remove('open'); b.classList.remove('open'); lock = false; upd(); }, 700);
   }
   upd();
@@ -141,6 +156,44 @@ function feed({ theme, ts, idx, root, msg, area, done }) {
     setTimeout(() => { if (b.classList.contains('up')) { b.classList.remove('up'); b.replaceChildren(); miss += 1; } }, Math.max(650, 1400 - idx * 70));
   };
   every(root, Math.max(420, 900 - idx * 50), () => { if (time > 0) show(); });
-  every(root, 250, () => { time -= 0.25; upd(); if (time <= 0) { stopAll(); done(`Süre doldu! ${score} hayvanı besledin.`, score * 2); } });
+  every(root, 250, () => { time -= 0.25; upd(); if (time <= 0) { stopAll(); done(`Süre doldu! ${score} hayvanı besledin.`, score * 2, score + miss ? score / (score + miss) : 0); } });
   upd();
+}
+
+// ---- Futbol: kaleci modu (rakip şut çeker, sen köşeyi seçip kurtarırsın) ----
+function penaltyKeeper({ idx, root, msg, area, done }) {
+  const AIM = Math.max(1000, 2200 - idx * 130); // şuttan önce karar verme süresi
+  const trust = Math.max(0.35, 1 - idx * 0.08); // rakibin bakışının doğru olma ihtimali
+  let round = 0, saves = 0, t = 0, target = 0, dive = null, phase = 'wait';
+  const k = h('span', { class: 'mg-keeper' }, fromHTML(characterArt('gk', 2, 'Kaleci', 'ben', 70)));
+  const ball = h('span', { class: 'mg-ball' });
+  const mark = h('i', { class: 'mg-hint', hidden: true });
+  const zones = [0, 1, 2].map((z) => h('button', { class: 'mg-zone', type: 'button', 'aria-label': ['Sol köşe', 'Orta', 'Sağ köşe'][z], onClick: () => { if (phase === 'aim') { dive = z; k.style.left = `${z * 33.3 + 16.6}%`; } } }));
+  area.append(h('div', { class: 'mg-goal' }, h('div', { class: 'mg-zones' }, ...zones), mark, k), ball);
+  const place = (z) => { k.style.left = `${z * 33.3 + 16.6}%`; };
+  const upd = (txt) => { msg.textContent = `${txt} · Kalan şut: ${5 - round} · Kurtarış: ${saves}`; };
+  const start = () => {
+    if (!root.isConnected) return;
+    round += 1; t = 0; dive = null; target = rnd(0, 2); phase = 'aim'; place(1);
+    const shown = Math.random() < trust ? target : (target + rnd(1, 2)) % 3;
+    mark.style.left = `${shown * 33.3 + 16.6}%`; mark.hidden = false;
+    setTimeout(() => { mark.hidden = true; }, 700);
+    ball.style.left = '50%';
+    upd('Rakibin bakışını izle, köşeyi seç!');
+  };
+  every(root, 100, () => {
+    if (phase !== 'aim') return;
+    t += 100;
+    if (t < AIM) return;
+    phase = 'shot';
+    const saved = dive === target;
+    if (saved) saves += 1;
+    ball.style.left = `${target * 33.3 + 16.6}%`; ball.classList.add('fly');
+    msg.textContent = saved ? 'KURTARDIN!' : 'Gol oldu!';
+    setTimeout(() => {
+      ball.classList.remove('fly'); ball.style.left = '50%';
+      if (round >= 5) { stopAll(); done(`Maç bitti: ${saves}/5 kurtarış.`, saves * 4, saves / 5); } else start();
+    }, 1000);
+  });
+  place(1); start();
 }

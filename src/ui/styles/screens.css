@@ -222,3 +222,6 @@ body.focus-mode .ambient { position: fixed; inset: 0; border-radius: 0; }
 .mg-hole svg { width: 100%; height: 100%; opacity: 0; transform: translateY(60%); transition: all 0.15s; }
 .mg-hole.up svg { opacity: 1; transform: none; }
 :root[data-motion="off"] .mg-ball, :root[data-motion="off"] .mg-keeper, :root[data-motion="off"] .mg-hole svg { transition: none; }
+.mg-note, .sg-note { margin: 0; text-align: center; }
+.mg-hint { position: absolute; top: 40%; width: 18%; aspect-ratio: 1; transform: translate(-50%, -50%); border: 4px solid #ffd33d; border-radius: 50%; pointer-events: none; z-index: 3; }
+.mg-btns .btn[hidden] { display: none; }

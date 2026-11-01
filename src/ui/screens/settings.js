@@ -8,6 +8,7 @@ import { openModal, confirmDialog } from '../components/modal.js';
 import { toast } from '../components/toast.js';
 import { ask as askNotify, supported as notifySupported } from '../notify.js';
 import { themeState } from '../../core/economy.js';
+import { makeCode, readCode } from '../../core/recoveryCode.js';
 import { defaultState } from '../../core/storage.js';
 import { hashText, redeemHash, applyAutoLineup } from '../../core/testcode.js';
 
@@ -77,6 +78,45 @@ export function mount(root, ctx) {
       }
     }
     store.update((s) => { s.settings.notifications = on; });
+  }
+
+  async function showCode() {
+    const code = await makeCode(store.storage.exportJSON(store.get()));
+    const box = h('textarea', { class: 'input', readonly: true, rows: 6, 'aria-label': 'Kurtarma kodu', style: { width: '100%' } });
+    box.value = code;
+    openModal({
+      title: 'Kurtarma kodun',
+      body: [h('p', { class: 'small' }, 'Bu kodu kopyala ve diğer cihazda "Kodla yükle" ile yapıştır. Kod senin ilerlemeni taşır. Kimseyle paylaşma.'), box],
+      actions: [
+        { label: 'Kopyala', kind: 'primary', keepOpen: true, onClick: async () => {
+          try { await navigator.clipboard.writeText(code); toast('Kod kopyalandı'); } catch { box.select(); toast('Kodu elle kopyala'); }
+          return false;
+        } },
+        { label: 'Kapat' },
+      ],
+    });
+  }
+
+  function loadCode() {
+    const box = h('textarea', { class: 'input', rows: 6, placeholder: 'PO1. ile başlayan kodu buraya yapıştır', 'aria-label': 'Kurtarma kodu', style: { width: '100%' } });
+    openModal({
+      title: 'Kodla yükle',
+      body: [h('p', { class: 'small' }, 'Dikkat: bu cihazdaki ilerleme, koddaki ilerlemeyle değişir.'), box],
+      actions: [
+        { label: 'Yükle', kind: 'primary', onClick: async () => {
+          const text = await readCode(box.value);
+          const next = text ? store.storage.parseImport(text) : null;
+          if (!next) { toast('Kod geçersiz. Eksiksiz yapıştırdığından emin ol.'); return false; }
+          const ok = await confirmDialog({ title: t('settings.importTitle'), text: t('settings.importText'), yes: t('settings.importYes'), no: t('common.cancel'), danger: true });
+          if (!ok) return false;
+          store.replace(next);
+          ctx.applySettings();
+          ctx.applyTheme();
+          toast(t('settings.importOk'));
+        } },
+        { label: 'Vazgeç' },
+      ],
+    });
   }
 
   function importFile() {
@@ -162,6 +202,8 @@ export function mount(root, ctx) {
         h('div', { class: 'row-wrap' },
           h('button', { type: 'button', class: 'btn btn-outline', onClick: () => download(`pomodoro-oyun-yedek-${new Date().toISOString().slice(0, 10)}.json`, store.storage.exportJSON(store.get()), 'application/json') }, t('settings.export')),
           h('button', { type: 'button', class: 'btn btn-outline', onClick: importFile }, t('settings.import')),
+          h('button', { type: 'button', class: 'btn btn-outline', onClick: showCode }, 'Kurtarma kodu al'),
+          h('button', { type: 'button', class: 'btn btn-outline', onClick: loadCode }, 'Kodla yükle'),
           h('button', { type: 'button', class: 'btn btn-danger', onClick: wipe }, t('settings.wipe'))),
         store.storage.backend.persistent ? null : h('p', { class: 'card note' }, t('settings.noStorage'))),
       section(t('settings.about'),
