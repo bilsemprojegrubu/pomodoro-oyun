@@ -26,7 +26,7 @@ export function errorText(err) {
   if (m.includes('already') || m.includes('exists')) return 'Bu kullanıcı adı alınmış. Başka bir ad dene.';
   if (m.includes('invalid_credentials') || m.includes('invalid login')) return 'Kullanıcı adı veya şifre yanlış.';
   if (m.includes('weak') || m.includes('password')) return 'Şifre çok zayıf. Daha uzun bir şifre dene.';
-  if (m.includes('rate') || m.includes('too many') || m.includes('429')) return 'Çok fazla deneme yapıldı. Biraz bekle.';
+  if (m.includes('cok_fazla') || m.includes('rate') || m.includes('too many') || m.includes('429')) return 'Çok fazla deneme yapıldı. Biraz bekle.';
   const detail = String((err && (err.code || err.error_code || err.msg || err.message)) || '').slice(0, 80);
   return `Bir sorun oluştu. Sonra tekrar dene.${detail ? ` (${detail})` : ''}`;
 }
@@ -133,6 +133,11 @@ export function createCloud({ fetchFn = (...a) => fetch(...a), backend, now = ()
         method: 'POST', token: tk, headers: { Prefer: 'resolution=merge-duplicates,return=minimal' },
         body: { user_id: session.uid, email, updated_at: new Date(now()).toISOString() },
       });
+    },
+
+    /** Destek kutusuna mesaj bırakır (giriş gerekmez; sunucu tarafında frenlenir). */
+    async sendSupport(row) {
+      await call('/rest/v1/destek', { method: 'POST', headers: { Prefer: 'return=minimal' }, body: { ...row, status: 'yeni' } });
     },
 
     /** Sunucudaki kaydı, aynı anda yüklediğimizi not et (tekrar göndermeyelim). */

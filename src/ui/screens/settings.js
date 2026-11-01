@@ -9,6 +9,7 @@ import { toast } from '../components/toast.js';
 import { ask as askNotify, supported as notifySupported } from '../notify.js';
 import { themeState } from '../../core/economy.js';
 import { cleanUsername, errorText, validEmail } from '../../core/cloud.js';
+import { makeQuestion, checkSupport, SUPPORT } from '../../core/support.js';
 import { hasProgress, parseCloud } from '../../core/cloudSync.js';
 import { makeCode, readCode } from '../../core/recoveryCode.js';
 import { defaultState } from '../../core/storage.js';
@@ -219,15 +220,42 @@ export function mount(root, ctx) {
   }
 
   function forgot() {
-    const to = CONFIG.cloud.contactEmail;
+    const q = makeQuestion();
+    const user = h('input', { class: 'input', id: 'fg-user', autocapitalize: 'off', autocomplete: 'username', maxlength: '20' });
+    const mail = h('input', { class: 'input', id: 'fg-mail', type: 'email', autocapitalize: 'off', autocomplete: 'email', placeholder: 'ornek@gmail.com' });
+    const text = h('textarea', { class: 'input', id: 'fg-msg', rows: '3', maxlength: String(SUPPORT.maxMessage), placeholder: 'Şifremi unuttum, yeni şifre rica ederim.' });
+    const ans = h('input', { class: 'input', id: 'fg-ans', inputmode: 'numeric', autocomplete: 'off' });
+    // Gizli tuzak alan: insanlar görmez, botlar doldurur.
+    const honey = h('input', { name: 'website', tabindex: '-1', autocomplete: 'off', 'aria-hidden': 'true', style: 'position:absolute;left:-9999px;width:1px;height:1px;opacity:0' });
+    const msg = h('p', { class: 'small', role: 'alert' });
     openModal({
       title: 'Şifremi unuttum',
       body: [
-        h('p', { class: 'small' }, 'Hesap açarken e-posta yazdıysan şifreni sıfırlayabiliriz.'),
-        h('p', { class: 'small' }, to ? `Kayıt olurken yazdığın e-posta adresinden ${to} adresine kullanıcı adını yazarak mesaj at. Adresin kayıttakiyle aynıysa sana yeni bir geçici şifre veririz.` : 'Kayıt olurken yazdığın e-posta adresinden proje adresimize kullanıcı adını yazarak mesaj at. Adresin kayıttakiyle aynıysa sana yeni bir geçici şifre veririz.'),
+        h('p', { class: 'small' }, 'Hesap açarken e-posta yazdıysan şifreni sıfırlayabiliriz. Mesajın destek kutusuna düşer; kayıttaki e-postayla aynıysa sana yeni bir geçici şifre veririz.'),
+        h('div', { class: 'field' }, h('label', { for: 'fg-user' }, 'Kullanıcı adın'), user),
+        h('div', { class: 'field' }, h('label', { for: 'fg-mail' }, 'Kayıtta yazdığın e-posta'), mail),
+        h('div', { class: 'field' }, h('label', { for: 'fg-msg' }, 'Mesajın'), text),
+        h('div', { class: 'field' }, h('label', { for: 'fg-ans' }, q.text), ans),
+        honey,
         h('p', { class: 'card note small' }, 'E-posta yazmadıysan hesabı geri getiremeyiz. Bu durumda yeni bir hesap açabilirsin; ilerlemen bu cihazda duruyorsa kaybolmaz.'),
+        msg,
       ],
-      actions: [{ label: 'Tamam', kind: 'primary' }],
+      actions: [
+        { label: t('common.cancel') },
+        { label: 'Gönder', kind: 'primary', onClick: async () => {
+          let lastAt = 0;
+          try { lastAt = Number(localStorage.getItem(SUPPORT.key)) || 0; } catch { /* sessizce geç */ }
+          const r = checkSupport({ username: user.value, email: mail.value, message: text.value, honey: honey.value, answer: ans.value, expected: q.answer, lastAt });
+          if (!r.ok) {
+            if (r.reason === 'spam') { toast('Mesajın alındı.'); return; } // bota ipucu verme
+            msg.textContent = r.reason; return false;
+          }
+          msg.textContent = 'Gönderiliyor…';
+          try { await ctx.cloud.sendSupport(r.row); } catch (e) { msg.textContent = errorText(e); return false; }
+          try { localStorage.setItem(SUPPORT.key, String(Date.now())); } catch { /* sessizce geç */ }
+          toast('Mesajın alındı. En kısa sürede dönüş yapılır.');
+        } },
+      ],
     });
   }
 

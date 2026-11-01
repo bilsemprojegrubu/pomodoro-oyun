@@ -134,9 +134,5 @@ Kafe, moda ve barınak temaları baştan sona gezildi (kadro, mağaza verisi, el
 - Kayıtta ve Ayarlar > "E-posta ekle / değiştir" ile girilir; `public.contacts` tablosunda saklanır (RLS: herkes yalnız kendininkini görür). Girişte kullanılmaz.
 - Şifre sıfırlama ELLE: kullanıcı kayıtlı adresinden proje adresine yazar, sahibi Supabase panelinden (Authentication > Users) şifreyi sıfırlar. Kayıtlı e-postayı panelde Table Editor > contacts'tan doğrula.
 - Otomatik sıfırlama için ayrı SMTP servisi gerekir (Supabase'in varsayılan gönderimi sadece ekip üyelerine gider). Sonraki adım.
-- `CONFIG.cloud.contactEmail` = omeryasarby@gmail.com (geçici); proje adresi olunca değiştirilecek. Doluysa "Şifremi unuttum" ekranında gösterilir.
-
-## Kaleci modu ipuçları
-- Penaltı ve kalecilikte 10 şut, gol/kurtarış başı 2 altın.
-- Rakibin yönünü okumak için üç bağımsız ipucu var: bakış (sarı çember), koşu yönü, duruş. Her birinin güvenilirliği ayrı (`P.gaze`, `P.run`, `P.stance`) ve zorlukla (şut sırasıyla) düşer; alt sınırlar 0.35 / 0.5 / 0.45.
-- Her şuttan sonra "Bakış ✓/✗ · Koşu ✓/✗ · Duruş ✓/✗" yazılır; oyuncu hangi ipucuna güvenmesi gerektiğini öğrenir.
+- Kişisel e-posta artık sitede gösterilmez. "Şifremi unuttum" bir **destek kutusu** formu açar; mesaj `public.destek` tablosuna düşer (kurulum: `supabase/destek.sql`, SQL Editor'de bir kez çalıştırılır). Sahibi Table Editor > destek'ten okur; kayıtlı e-postayı contacts tablosundan doğrular.
+- Spam süzgeci: istemcide gizli tuzak alan, toplama sorusu, bağlantı yasağı, 10-500 karakter, cihaz başına 10 dk bekleme (`src/core/support.js`); sunucuda yalnız yazma izni (kimse okuyamaz), uzunluk kuralları, saatte toplam 30 ve kullanıcı adı başına 3 mesaj sınırı.
