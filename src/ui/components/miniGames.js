@@ -7,7 +7,7 @@ import { CONFIG } from '../../config.js';
 
 export const MINI = {
   cafe: { title: 'Pasta kulesi', how: 'Hareket eden katmanı doğru anda "Bırak" ile üstüne koy. Taşan kısım kesilir, kule yükseldikçe hızlanır.' },
-  football: { title: 'Penaltı atışları', how: '5 şutun var. Kaleci hareket ediyor: o an durmadığı köşeyi seç ve vur!' },
+  football: { title: 'Penaltı atışları', how: '10 şutun var. Kaleci hareket ediyor: o an durmadığı köşeyi seç ve vur!' },
   fashion: { title: 'Kombin eşleştirme', how: 'Kartları çevir, aynı olan çiftleri bul. Az hamlede bitir!' },
   shelter: { title: 'Hayvanları besle', how: '30 saniyen var. Yuvalardan çıkan hayvanlara dokunarak onları besle, kaçırma!' },
 };
@@ -88,7 +88,7 @@ function tower({ theme, ts, idx, root, msg, area, done }) {
 function penalty(c) {
   if (c.mode === 'keep') return penaltyKeeper(c);
   const { idx, root, msg, area, done } = c;
-  let keeper = 1, shots = 5, goals = 0, busy = false;
+  let keeper = 1, shots = 10, goals = 0, busy = false;
   const k = h('span', { class: 'mg-keeper' }, fromHTML(characterArt('gk', 1, 'Kaleci', 'kaleci', 70)));
   const ball = h('span', { class: 'mg-ball' });
   const zones = [0, 1, 2].map((z) => h('button', { class: 'mg-zone', type: 'button', 'aria-label': ['Sol köşe', 'Orta', 'Sağ köşe'][z], onClick: () => shoot(z) }));
@@ -106,7 +106,7 @@ function penalty(c) {
     msg.textContent = g ? 'GOL!' : 'Kaleci kurtardı!';
     setTimeout(() => {
       ball.classList.remove('fly'); ball.style.left = '50%'; busy = false;
-      if (shots <= 0) { stopAll(); done(`Maç bitti: ${goals}/5 gol.`, goals * 4, goals / 5); } else upd();
+      if (shots <= 0) { stopAll(); done(`Maç bitti: ${goals}/10 gol.`, goals * 2, goals / 10); } else upd();
     }, 900);
   }
   place(); upd();
@@ -171,7 +171,7 @@ function penaltyKeeper({ idx, root, msg, area, done }) {
   const zones = [0, 1, 2].map((z) => h('button', { class: 'mg-zone', type: 'button', 'aria-label': ['Sol köşe', 'Orta', 'Sağ köşe'][z], onClick: () => { if (phase === 'aim') { dive = z; k.style.left = `${z * 33.3 + 16.6}%`; } } }));
   area.append(h('div', { class: 'mg-goal' }, h('div', { class: 'mg-zones' }, ...zones), mark, k), ball);
   const place = (z) => { k.style.left = `${z * 33.3 + 16.6}%`; };
-  const upd = (txt) => { msg.textContent = `${txt} · Kalan şut: ${5 - round} · Kurtarış: ${saves}`; };
+  const upd = (txt) => { msg.textContent = `${txt} · Kalan şut: ${10 - round} · Kurtarış: ${saves}`; };
   const start = () => {
     if (!root.isConnected) return;
     round += 1; t = 0; dive = null; target = rnd(0, 2); phase = 'aim'; place(1);
@@ -192,7 +192,7 @@ function penaltyKeeper({ idx, root, msg, area, done }) {
     msg.textContent = saved ? 'KURTARDIN!' : 'Gol oldu!';
     setTimeout(() => {
       ball.classList.remove('fly'); ball.style.left = '50%';
-      if (round >= 5) { stopAll(); done(`Maç bitti: ${saves}/5 kurtarış.`, saves * 4, saves / 5); } else start();
+      if (round >= 10) { stopAll(); done(`Maç bitti: ${saves}/10 kurtarış.`, saves * 2, saves / 10); } else start();
     }, 1000);
   });
   place(1); start();

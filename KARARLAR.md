@@ -114,7 +114,7 @@ Kafe, moda ve barınak temaları baştan sona gezildi (kadro, mağaza verisi, el
 - Arası doğrusal: `pct = round(-20 + 20 * ortalamaBaşarı)`. (Başarı %25'in altındaysa hiç oynamamak daha iyi çıkar; kullanıcı böyle istedi.)
 - Ayarlar: `CONFIG.friendly.gameEffect = { none: -15, worst: -20, best: 0 }`.
 - Oyunların üstünde "günün özetini etkiler" yazısı, oyun sonunda ve maç analizinde sonuç satırı var.
-- Futbolda yeni mod: kaleci (penaltı tutma), 5 tur, rakibin bakışı ipucu verir ama zorlukla güveni azalır.
+- Futbolda yeni mod: kaleci (penaltı tutma); penaltıda ve kalecilikte 10 şut (tek kaçırma etkisi yarıya iner, gol başı 2 altın), rakibin bakışı ipucu verir ama zorlukla güveni azalır.
 
 ## Kurtarma kodu (cihazlar arası devam)
 - Kullanıcı adı/şifre yok, sunucu yok. Ayarlar > "Kurtarma kodu al" ile kod alınır, diğer cihazda "Kodla yükle".
