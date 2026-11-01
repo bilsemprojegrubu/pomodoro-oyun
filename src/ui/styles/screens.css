@@ -370,3 +370,42 @@ body.focus-mode .ambient { position: fixed; inset: 0; border-radius: 0; }
 .sg-motion { display: grid; gap: 0.4rem; padding: 0.6rem; border-radius: 12px; background: var(--tint); text-align: center; }
 
 /* Telefon animasyonları kapattığında kullanıcı "yine de göster" derse oyunlar çalışır (ayar). */
+
+/* ---- Kaleci modu: kalecinin gözünden ---- */
+.kv-world { position: absolute; inset: 0; transform: scale(1.06); transform-origin: 50% 50%; transition: transform 0.35s cubic-bezier(.2,.9,.3,1); }
+.kv-world[data-lean="0"] { transform: translateX(3%) scale(1.06); }
+.kv-world[data-lean="2"] { transform: translateX(-3%) scale(1.06); }
+.kv-world.dive-l { transform: translate(4%, 0) rotate(5deg) scale(1.12); }
+.kv-world.dive-r { transform: translate(-4%, 0) rotate(-5deg) scale(1.12); }
+.kv-world.dive-c { transform: translateY(5%) scale(1.1); }
+.kv-bg, .kv-frame { position: absolute; inset: 0; width: 100%; height: 100%; display: block; pointer-events: none; }
+.kv-frame { z-index: 6; }
+.kv .pk-crowd { height: 26%; top: 3%; }
+.kv-shooter { position: absolute; left: 50%; top: 50%; width: 11%; z-index: 2; line-height: 0; transform: translate(-50%, -100%); pointer-events: none; }
+.kv-shooter svg { width: 100%; height: auto; display: block; filter: drop-shadow(0 2px 1px rgb(0 0 0 / 30%)); animation: kv-sway 0.9s ease-in-out infinite alternate; transform-origin: 50% 100%; }
+@keyframes kv-sway { from { transform: rotate(-3deg) translateX(-4%); } to { transform: rotate(3deg) translateX(4%); } }
+.kv-ball { left: 50%; top: 55%; width: 4.5%; z-index: 4; }
+.kv-shadow { position: absolute; left: 50%; top: 56.6%; width: 4.5%; height: 1.2%; z-index: 3; border-radius: 50%; background: rgb(0 0 0 / 40%); transform: translate(-50%, -50%); filter: blur(1px); pointer-events: none; }
+.kv-hands { position: absolute; inset: 0; z-index: 8; pointer-events: none; transition: transform 0.25s cubic-bezier(.2,.9,.3,1); }
+.kv-hands[data-lean="0"] { transform: translateX(-16%); }
+.kv-hands[data-lean="2"] { transform: translateX(16%); }
+.kv-hands.dive-l, .kv-hands.dive-c, .kv-hands.dive-r { transform: none; }
+.kv-glove { position: absolute; top: 86%; width: 18%; line-height: 0; translate: -50% -50%; transition: left 0.3s cubic-bezier(.2,.9,.3,1), top 0.3s cubic-bezier(.2,.9,.3,1), rotate 0.3s; }
+.kv-glove svg { width: 100%; height: auto; display: block; filter: drop-shadow(0 4px 4px rgb(0 0 0 / 35%)); animation: kv-bob 0.55s ease-in-out infinite alternate; }
+.kv-glove.l { left: 32%; rotate: 12deg; }
+.kv-glove.r { left: 68%; rotate: -12deg; }
+.kv-glove.r svg { scale: -1 1; }
+@keyframes kv-bob { from { transform: translateY(0); } to { transform: translateY(5%); } }
+.kv-hands.dive-l .kv-glove.l { left: 9%; top: 37%; rotate: -20deg; }
+.kv-hands.dive-l .kv-glove.r { left: 31%; top: 33%; rotate: -5deg; }
+.kv-hands.dive-r .kv-glove.l { left: 69%; top: 33%; rotate: 5deg; }
+.kv-hands.dive-r .kv-glove.r { left: 91%; top: 37%; rotate: 20deg; }
+.kv-hands.dive-c .kv-glove.l { left: 38%; top: 44%; rotate: -8deg; }
+.kv-hands.dive-c .kv-glove.r { left: 62%; top: 44%; rotate: 8deg; }
+.kv-hands.punch .kv-glove svg { animation: kv-punch 0.3s ease-out; }
+@keyframes kv-punch { 40% { transform: scale(1.18); } }
+.kv-zones { position: absolute; inset: 0; z-index: 10; display: grid; grid-template-columns: repeat(3, 1fr); }
+.kv-zone { border-left: 1px dashed rgb(255 255 255 / 25%); }
+.kv-zone.picked { background: linear-gradient(rgb(255 230 102 / 0%), rgb(255 230 102 / 25%)); }
+.kv-hint { top: 34%; z-index: 7; }
+.kv-banner { top: 72%; }

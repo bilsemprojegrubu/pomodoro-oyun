@@ -6,6 +6,7 @@ import { propArt } from '../../assets/props.js';
 import { CONFIG } from '../../config.js';
 import { confetti, flyCoins, floatText, countUp, burst } from './effects.js';
 import { penaltyScene } from './penaltyScene.js';
+import { keeperScene } from './keeperScene.js';
 
 export const MINI = {
   cafe: { title: 'Pasta kulesi', how: 'Hareket eden katmanı doğru anda "Bırak" ile üstüne koy. Taşan kısım kesilir, kule yükseldikçe hızlanır.' },
@@ -229,7 +230,7 @@ function penaltyKeeper({ idx, root, msg, area, done }) {
   const cueOf = (p, target) => (Math.random() < p ? target : (target + rnd(1, 2)) % 3);
   let cue = { gaze: 0, run: 0, stance: 0 };
   let round = 0, saves = 0, t = 0, target = 0, dive = null, phase = 'wait';
-  const sc = penaltyScene({ keeperId: 'ben', keeperN: 2, onZone: (z) => { if (phase === 'aim') { dive = z; sc.place(z); sc.pick(z); } } });
+  const sc = keeperScene({ onZone: (z) => { if (phase === 'aim') { dive = z; sc.place(z); sc.pick(z); } } });
   const track = (label) => { const dots = [0, 1, 2].map(() => h('i', { class: 'mg-dot' })); return { dots, el: h('div', { class: 'mg-cue' }, h('span', null, label), h('div', { class: 'mg-track' }, ...dots)) }; };
   const runCue = track('🏃 Koşu yönü');
   const stanceCue = track('🦶 Duruş');

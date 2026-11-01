@@ -31,7 +31,7 @@ const POSTS = `<svg class="pk-posts" viewBox="0 0 100 100" preserveAspectRatio="
 </svg>`;
 
 // Tribün: renkli seyirci noktaları (gol olunca zıplar).
-function crowd() {
+export function crowd() {
   const cols = ['#f2c230', '#e4573d', '#ffffff', '#2f80ed', '#f29ebb', '#7bc47f'];
   let s = '';
   for (let row = 0; row < 4; row++) {

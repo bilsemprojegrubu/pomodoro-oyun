@@ -146,3 +146,4 @@ Kafe, moda ve barınak temaları baştan sona gezildi (kadro, mağaza verisi, el
 - Servis oyununda verilen eşyalar sahneye iner (futbolda çağrılan oyuncular hocanın yanına koşar), mutlu müşteri eşyalarla çıkar, kızgın müşteri kızarıp ters yöne gider.
 - Tüm mini oyunların sonunda yıldızlı sonuç kartı (0-3 yıldız, para sayarak artar).
 - Telefon "animasyonları kaldır" diyorsa animasyonlar varsayılan kapalı; oyunda "Animasyonları aç" düğmesi ve ayarlarda "Animasyonları yine de göster" (settings.forceMotion) var.
+- Kaleci modu kalecinin gözünden (`keeperScene.js`): kalenin içinden sahaya bakış; direkler ve file ekranın kenarında, altta eldivenler. Köşeye dokununca eldivenler o tarafa kayar; şutta kamera o yöne savrulur, eldivenler uzanır, top büyüyerek sana gelir. Kurtarışta eldivenden seker, golde yanından geçip ekrandan çıkar. Ekrandaki sol/orta/sağ, ipucu çubuklarındaki sırayla aynıdır.
