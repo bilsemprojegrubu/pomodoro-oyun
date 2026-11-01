@@ -129,3 +129,9 @@ Kafe, moda ve barınak temaları baştan sona gezildi (kadro, mağaza verisi, el
 - Şifre sıfırlama YOK (e-posta toplanmıyor). İsteğe bağlı e-posta + otomatik sıfırlama sonraki adım; ayrı kurulum gerektirir.
 - Altın/maç hesabı hâlâ telefonda; hile mümkün (sıralama tablosu yapılırsa sunucuya taşınmalı).
 - Anahtar `src/config.js` içinde, publishable türü, herkese açık olması güvenli.
+
+## İsteğe bağlı e-posta
+- Kayıtta ve Ayarlar > "E-posta ekle / değiştir" ile girilir; `public.contacts` tablosunda saklanır (RLS: herkes yalnız kendininkini görür). Girişte kullanılmaz.
+- Şifre sıfırlama ELLE: kullanıcı kayıtlı adresinden proje adresine yazar, sahibi Supabase panelinden (Authentication > Users) şifreyi sıfırlar. Kayıtlı e-postayı panelde Table Editor > contacts'tan doğrula.
+- Otomatik sıfırlama için ayrı SMTP servisi gerekir (Supabase'in varsayılan gönderimi sadece ekip üyelerine gider). Sonraki adım.
+- `CONFIG.cloud.contactEmail` boş; doldurulursa "Şifremi unuttum" ekranında gösterilir.

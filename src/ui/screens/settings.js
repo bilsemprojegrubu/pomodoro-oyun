@@ -8,7 +8,7 @@ import { openModal, confirmDialog } from '../components/modal.js';
 import { toast } from '../components/toast.js';
 import { ask as askNotify, supported as notifySupported } from '../notify.js';
 import { themeState } from '../../core/economy.js';
-import { cleanUsername, errorText } from '../../core/cloud.js';
+import { cleanUsername, errorText, validEmail } from '../../core/cloud.js';
 import { hasProgress, parseCloud } from '../../core/cloudSync.js';
 import { makeCode, readCode } from '../../core/recoveryCode.js';
 import { defaultState } from '../../core/storage.js';
@@ -186,6 +186,7 @@ export function mount(root, ctx) {
     const user = h('input', { class: 'input', id: 'au-user', autocomplete: 'username', autocapitalize: 'off', spellcheck: 'false', maxlength: 20, placeholder: 'kullanıcı adı' });
     const pw = h('input', { class: 'input', id: 'au-pw', type: 'password', autocomplete: signup ? 'new-password' : 'current-password', placeholder: 'şifre' });
     const pw2 = signup ? h('input', { class: 'input', id: 'au-pw2', type: 'password', autocomplete: 'new-password', placeholder: 'şifre (tekrar)' }) : null;
+    const mail = signup ? h('input', { class: 'input', id: 'au-mail', type: 'email', autocomplete: 'email', autocapitalize: 'off', placeholder: 'ornek@gmail.com' }) : null;
     const msg = h('p', { class: 'small', role: 'alert' });
     openModal({
       title: signup ? 'Hesap oluştur' : 'Giriş yap',
@@ -193,7 +194,9 @@ export function mount(root, ctx) {
         h('div', { class: 'field' }, h('label', { for: 'au-user' }, 'Kullanıcı adı'), user, h('p', { class: 'small muted' }, '3-20 karakter: harf (a-z, Türkçe harf olmadan), rakam ve alt çizgi.')),
         h('div', { class: 'field' }, h('label', { for: 'au-pw' }, 'Şifre'), pw),
         pw2 ? h('div', { class: 'field' }, h('label', { for: 'au-pw2' }, 'Şifre (tekrar)'), pw2) : null,
-        signup ? h('p', { class: 'card note small' }, 'Önemli: Şifreni unutursan hesabını geri alamayız. Şifreni bir yere not et. Gerçek adını ve e-postanı istemiyoruz. Kaydın sadece senin hesabında saklanır.') : null,
+        mail ? h('div', { class: 'field' }, h('label', { for: 'au-mail' }, 'E-posta (isteğe bağlı)'), mail, h('p', { class: 'small muted' }, 'Sadece şifreni unutursan seni tanımak için. Boş bırakabilirsin. Reklam ya da başka amaçla kullanılmaz.')) : null,
+        signup ? null : h('button', { type: 'button', class: 'btn btn-ghost', onClick: forgot }, 'Şifremi unuttum'),
+        signup ? h('p', { class: 'card note small' }, 'Önemli: E-posta yazmazsan ve şifreni unutursan hesabını geri alamayız. Şifreni bir yere not et. Gerçek adını istemiyoruz. Kaydın sadece senin hesabında saklanır.') : null,
         msg,
       ],
       actions: [
@@ -203,11 +206,47 @@ export function mount(root, ctx) {
           if (!name) { msg.textContent = 'Kullanıcı adı geçersiz.'; return false; }
           if (pw.value.length < 8) { msg.textContent = 'Şifre en az 8 karakter olmalı.'; return false; }
           if (signup && pw.value !== pw2.value) { msg.textContent = 'İki şifre aynı değil.'; return false; }
+          const email = signup ? mail.value.trim().toLowerCase() : '';
+          if (!validEmail(email)) { msg.textContent = 'E-posta adresi geçersiz görünüyor.'; return false; }
           msg.textContent = 'Bekle…';
           try {
-            if (signup) { await ctx.cloud.signUp(name, pw.value); await ctx.cloud.push(store.get()); toast('Hesabın oluşturuldu. İlerlemen kaydedildi.'); } else { await ctx.cloud.signIn(name, pw.value); await afterSignIn(); }
+            if (signup) { await ctx.cloud.signUp(name, pw.value); await ctx.cloud.push(store.get()); if (email) { try { await ctx.cloud.setEmail(email); } catch { toast('Hesap açıldı ama e-posta kaydedilemedi. Ayarlar\'dan tekrar ekleyebilirsin.'); } } toast('Hesabın oluşturuldu. İlerlemen kaydedildi.'); } else { await ctx.cloud.signIn(name, pw.value); await afterSignIn(); }
           } catch (e) { msg.textContent = errorText(e); return false; }
           render();
+        } },
+      ],
+    });
+  }
+
+  function forgot() {
+    const to = CONFIG.cloud.contactEmail;
+    openModal({
+      title: 'Şifremi unuttum',
+      body: [
+        h('p', { class: 'small' }, 'Hesap açarken e-posta yazdıysan şifreni sıfırlayabiliriz.'),
+        h('p', { class: 'small' }, to ? `Kayıt olurken yazdığın e-posta adresinden ${to} adresine kullanıcı adını yazarak mesaj at. Adresin kayıttakiyle aynıysa sana yeni bir geçici şifre veririz.` : 'Kayıt olurken yazdığın e-posta adresinden proje adresimize kullanıcı adını yazarak mesaj at. Adresin kayıttakiyle aynıysa sana yeni bir geçici şifre veririz.'),
+        h('p', { class: 'card note small' }, 'E-posta yazmadıysan hesabı geri getiremeyiz. Bu durumda yeni bir hesap açabilirsin; ilerlemen bu cihazda duruyorsa kaybolmaz.'),
+      ],
+      actions: [{ label: 'Tamam', kind: 'primary' }],
+    });
+  }
+
+  async function editEmail() {
+    let current = '';
+    try { current = await ctx.cloud.getEmail(); } catch (e) { toast(errorText(e)); return; }
+    const mail = h('input', { class: 'input', id: 'ed-mail', type: 'email', autocomplete: 'email', autocapitalize: 'off', placeholder: 'ornek@gmail.com' });
+    mail.value = current;
+    const msg = h('p', { class: 'small', role: 'alert' });
+    openModal({
+      title: 'E-posta (isteğe bağlı)',
+      body: [h('p', { class: 'small' }, 'Şifreni unutursan hesabını bu adresle kurtarabiliriz. Boş bırakıp kaydedersen e-postan silinir.'), h('div', { class: 'field' }, h('label', { for: 'ed-mail' }, 'E-posta'), mail), msg],
+      actions: [
+        { label: t('common.cancel') },
+        { label: 'Kaydet', kind: 'primary', onClick: async () => {
+          const email = mail.value.trim().toLowerCase();
+          if (!validEmail(email)) { msg.textContent = 'E-posta adresi geçersiz görünüyor.'; return false; }
+          try { await ctx.cloud.setEmail(email); } catch (e) { msg.textContent = errorText(e); return false; }
+          toast(email ? 'E-posta kaydedildi' : 'E-posta silindi');
         } },
       ],
     });
@@ -235,6 +274,7 @@ export function mount(root, ctx) {
           h('p', { class: 'small muted' }, 'İlerlemen otomatik olarak hesabına kaydedilir. Başka cihazda aynı kullanıcı adı ve şifreyle giriş yap.'),
           h('div', { class: 'row-wrap' },
             h('button', { type: 'button', class: 'btn btn-outline', onClick: syncNow }, 'Şimdi eşitle'),
+            h('button', { type: 'button', class: 'btn btn-outline', onClick: editEmail }, 'E-posta ekle / değiştir'),
             h('button', { type: 'button', class: 'btn btn-outline', onClick: signOut }, 'Çıkış yap'))]
         : [h('p', { class: 'small muted' }, 'Hesap açarsan ilerlemen başka cihazlarda da kaldığın yerden devam eder. Hesap açmak zorunlu değil.'),
           h('div', { class: 'row-wrap' },

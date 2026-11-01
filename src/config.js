@@ -80,6 +80,7 @@ export const CONFIG = {
     key: 'sb_publishable_9MQhJyVEc5a6U9mrLnyTAg_Sh4gKn7r',
     emailDomain: 'kullanici.pomodoro-oyun.app',
     syncEverySec: 30,
+    contactEmail: '', // Şifresini unutanların yazacağı proje adresi (boşsa gösterilmez)
   },
 
   goals: [2, 4, 6, 8],

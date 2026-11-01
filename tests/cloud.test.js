@@ -127,3 +127,13 @@ describe('açılış eşitlemesi', () => {
     expect(await startupSync({ cloud: off, store: mkStore(), ask: async () => true })).toBe('offline');
   });
 });
+
+import { validEmail } from '../src/core/cloud.js';
+describe('e-posta', () => {
+  it('boş geçerli, bozuk geçersiz', () => {
+    expect(validEmail('')).toBe(true);
+    expect(validEmail('ali@gmail.com')).toBe(true);
+    expect(validEmail('ali@gmail')).toBe(false);
+    expect(validEmail('ali gmail.com')).toBe(false);
+  });
+});

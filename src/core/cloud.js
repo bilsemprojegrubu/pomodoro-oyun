@@ -13,6 +13,9 @@ export function cleanUsername(raw) {
   return /^[a-z0-9_]{3,20}$/.test(u) ? u : null;
 }
 
+/** E-posta kabaca doğru biçimde mi? (boşsa geçerli sayılır: isteğe bağlı) */
+export const validEmail = (e) => !e || /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(e);
+
 /** Kullanıcı adından, sunucuya giden sahte e-posta (gerçek e-posta istemiyoruz, hiçbir zaman posta gönderilmez). */
 export const fakeEmail = (username) => `${username}@${C.emailDomain}`;
 
@@ -118,6 +121,20 @@ export function createCloud({ fetchFn = (...a) => fetch(...a), backend, now = ()
       session = { ...session, pushed: hashString(stateText(state)), syncedAt: at };
       save(session);
     },
+    /** İsteğe bağlı iletişim e-postası (yalnızca kullanıcı kendi kaydını görür). */
+    async getEmail() {
+      const rows = await call('/rest/v1/contacts?select=email', { token: await token() });
+      return rows && rows[0] ? rows[0].email : '';
+    },
+    async setEmail(email) {
+      const tk = await token();
+      if (!email) { await call(`/rest/v1/contacts?user_id=eq.${session.uid}`, { method: 'DELETE', token: tk, headers: { Prefer: 'return=minimal' } }); return; }
+      await call('/rest/v1/contacts?on_conflict=user_id', {
+        method: 'POST', token: tk, headers: { Prefer: 'resolution=merge-duplicates,return=minimal' },
+        body: { user_id: session.uid, email, updated_at: new Date(now()).toISOString() },
+      });
+    },
+
     /** Sunucudaki kaydı, aynı anda yüklediğimizi not et (tekrar göndermeyelim). */
     markSynced(state, at) {
       if (!session) return;
