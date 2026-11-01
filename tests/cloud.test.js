@@ -42,7 +42,8 @@ describe('kullanıcı adı', () => {
   it('kuralları denetler', () => {
     expect(cleanUsername(' Ali_12 ')).toBe('ali_12');
     expect(cleanUsername('ab')).toBeNull();
-    expect(cleanUsername('çağrı')).toBeNull();
+    expect(cleanUsername('çağrı')).toBe('cagri');
+    expect(cleanUsername('çağrı!')).toBeNull();
     expect(cleanUsername('a b c')).toBeNull();
     expect(fakeEmail('ali')).toContain('ali@');
   });
