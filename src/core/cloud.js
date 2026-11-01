@@ -25,6 +25,7 @@ export function errorText(err) {
   // Supabase bazen "code" alanına sayı (422) koyar; asıl neden error_code ve msg içindedir.
   const parts = err ? [err.error_code, err.code, err.msg, err.message, err.error_description, err.error] : [];
   const m = parts.filter((x) => x !== undefined && x !== null).map(String).join(' ').toLowerCase();
+  if (m.includes('signup_disabled') || m.includes('email_provider_disabled') || m.includes('signups not allowed') || m.includes('disabled')) return 'Hesap açma şu an kapalı (sunucu ayarı). Site sahibine haber ver.';
   if (m.includes('already') || m.includes('exists')) return 'Bu kullanıcı adı alınmış. Başka bir ad dene.';
   if (m.includes('invalid_credentials') || m.includes('invalid login')) return 'Kullanıcı adı veya şifre yanlış.';
   if (m.includes('weak') || m.includes('password')) return 'Şifre çok zayıf. Daha uzun bir şifre dene.';

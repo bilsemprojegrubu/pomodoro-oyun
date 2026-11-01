@@ -145,3 +145,7 @@ describe('errorText sayısal kod', () => {
     expect(errorText({ code: 400, error_code: 'email_address_invalid', msg: 'Email address is invalid' })).toContain('email_address_invalid');
   });
 });
+
+it('kayıt kapalıysa anlaşılır mesaj verir', () => {
+  expect(errorText({ code: 422, error_code: 'signup_disabled', msg: 'Signups not allowed for this instance' })).toMatch(/kapalı/);
+});
