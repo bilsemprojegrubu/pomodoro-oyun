@@ -55,3 +55,36 @@ export function countUp(el, from, to, ms = 600, format = (n) => String(n)) {
   }
   requestAnimationFrame(step);
 }
+
+/** Bir elemanın üstünde kısa süre yükselip silinen yazı (ör. "GOL!", "+1"). */
+export function floatText(anchor, text, cls = '') {
+  if (!motionOn() || !anchor) return;
+  const host = anchor.offsetParent || anchor.parentElement;
+  if (!host) return;
+  const f = h('span', { class: `fx-float ${cls}`.trim(), 'aria-hidden': 'true' }, text);
+  f.style.left = `${anchor.offsetLeft + anchor.offsetWidth / 2}px`;
+  f.style.top = `${anchor.offsetTop + anchor.offsetHeight * 0.35}px`;
+  host.append(f);
+  setTimeout(() => f.remove(), 1000);
+}
+
+/** src elemanının kopyası dst elemanına uçar (ör. tepsiden siparişe). */
+export function flyClone(src, dst, ms = 380) {
+  if (!motionOn() || !src || !dst) return;
+  const a = src.getBoundingClientRect();
+  const b = dst.getBoundingClientRect();
+  const c = src.cloneNode(true);
+  c.removeAttribute('id');
+  c.disabled = true;
+  c.classList.add('fly-clone');
+  Object.assign(c.style, { left: `${a.left}px`, top: `${a.top}px`, width: `${a.width}px`, height: `${a.height}px` });
+  document.body.append(c);
+  const dx = b.left + b.width / 2 - (a.left + a.width / 2);
+  const dy = b.top + b.height / 2 - (a.top + a.height / 2);
+  const k = Math.max(0.3, Math.min(1, b.width / a.width));
+  const anim = c.animate(
+    [{ transform: 'translate(0,0) scale(1)', opacity: 1 }, { transform: `translate(${dx * 0.5}px, ${dy * 0.5 - 30}px) scale(${(1 + k) / 2 + 0.1})`, opacity: 1, offset: 0.55 }, { transform: `translate(${dx}px, ${dy}px) scale(${k})`, opacity: 0.8 }],
+    { duration: ms, easing: 'cubic-bezier(0.3, 0.7, 0.4, 1)', fill: 'both' },
+  );
+  anim.onfinish = () => c.remove();
+}

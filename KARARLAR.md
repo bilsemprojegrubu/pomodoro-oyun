@@ -136,3 +136,9 @@ Kafe, moda ve barınak temaları baştan sona gezildi (kadro, mağaza verisi, el
 - Otomatik sıfırlama için ayrı SMTP servisi gerekir (Supabase'in varsayılan gönderimi sadece ekip üyelerine gider). Sonraki adım.
 - Kişisel e-posta artık sitede gösterilmez. "Şifremi unuttum" bir **destek kutusu** formu açar; mesaj `public.destek` tablosuna düşer (kurulum: `supabase/destek.sql`, SQL Editor'de bir kez çalıştırılır). Sahibi Table Editor > destek'ten okur; kayıtlı e-postayı contacts tablosundan doğrular.
 - Spam süzgeci: istemcide gizli tuzak alan, toplama sorusu, bağlantı yasağı, 10-500 karakter, cihaz başına 10 dk bekleme (`src/core/support.js`); sunucuda yalnız yazma izni (kimse okuyamaz), uzunluk kuralları, saatte toplam 30 ve kullanıcı adı başına 3 mesaj sınırı.
+
+## Oyun animasyonları
+- Tüm hareketler `motionOn()` / `data-motion="off"` ile kapanır (ayarlardaki "hareket" anahtarı).
+- Ortak yardımcılar `effects.js` içinde: `floatText` (yükselen yazı), `flyClone` (öğe uçurma), `confetti`, `flyCoins`.
+- Tower her 30 ms yeniden çizildiği için efektler ayrı `.mg-fx` katmanında durur.
+- Penaltı: kaleci vuruş yönüne dalar, top döner, file ve kale parlar. Servis oyunu: müşteri girişi, sabırsızlık sallanması, seri yazısı, altın uçuşu. Aynı kod dört temada da çalışır.

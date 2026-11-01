@@ -11,6 +11,7 @@ import { awardGameCoins } from '../../core/gameCoins.js';
 import { recordGame } from '../../core/gamePerf.js';
 import { fmtNumber } from '../../i18n/index.js';
 import { CONFIG } from '../../config.js';
+import { confetti, flyCoins, flyClone, floatText } from './effects.js';
 
 const CFG = {
   cafe: { parts: [{ cat: 'menu', n: [1, 3] }], cust: 'cafe', play: 'Siparişleri hazırla', ask: 'Müşteri bunları istiyor:', done: 'Afiyet olsun!' },
@@ -104,8 +105,9 @@ export function sceneBox(theme, ts, store) {
     const stats = h('p', { class: 'sg-stats small' });
     const reaction = h('span', { class: 'sg-react', 'aria-hidden': 'true' });
     const custWrap = h('span', { class: 'sg-cust', 'aria-hidden': 'true' });
+    const bubble = h('div', { class: 'sg-bubble' }, h('p', { class: 'sg-ask small' }, cfg.ask), orderRow);
     const stage = stageFor(theme, [
-      h('div', { class: 'sg-bubble' }, h('p', { class: 'sg-ask small' }, cfg.ask), orderRow),
+      bubble,
       custWrap, reaction,
       h('div', { class: 'sg-bar', role: 'progressbar', 'aria-label': 'Müşterinin sabrı' }, bar),
     ], `${theme.name}: servis oyunu`);
@@ -120,7 +122,8 @@ export function sceneBox(theme, ts, store) {
       got = new Set();
       left = PATIENCE;
       custWrap.replaceChildren(fromHTML(characterArt(cfg.cust, rnd(0, 9), '', `sg${Math.random()}`, 96)));
-      custWrap.classList.remove('leave', 'happy');
+      custWrap.classList.remove('leave', 'happy', 'impatient', 'enter'); void custWrap.offsetWidth; custWrap.classList.add('enter');
+      bar.style.width = '100%'; bar.style.background = ''; bar.classList.remove('low');
       orderRow.replaceChildren();
       tray.replaceChildren();
       if (!order) {
@@ -149,6 +152,11 @@ export function sceneBox(theme, ts, store) {
         custWrap.classList.add('happy');
         reaction.replaceChildren(...Array.from({ length: stars }, () => fromHTML(STAR)));
         const got = pay(store, stars + 1);
+        reaction.style.setProperty('--n', String(stars));
+        if (G.streak >= 3) floatText(custWrap, `🔥 ${G.streak} seri!`, 'streak');
+        if (stars === 3 || G.streak % 5 === 0) confetti(16);
+        const coinEl = document.getElementById('coin-value');
+        if (got > 0 && coinEl) flyCoins(custWrap.getBoundingClientRect(), coinEl, theme.currency.icon, Math.min(6, stars + 2));
         status.textContent = `${cfg.done} ${'★'.repeat(stars)}${got ? ` +${got} ${theme.currency.name}` : ' (bugünkü oyun parası doldu)'}`;
       } else {
         G.streak = 0;
@@ -166,15 +174,18 @@ export function sceneBox(theme, ts, store) {
       if (busy || !order) return;
       if (it === order.need[got.size]) {
         got.add(it.id);
+        const slot = orderRow.querySelector(`[data-id="${it.id}"]`);
+        flyClone(btn, slot);
         btn.classList.add('ok');
         btn.disabled = true;
-        orderRow.querySelector(`[data-id="${it.id}"]`).classList.add('done');
+        slot.classList.add('done');
         if (got.size === order.need.length) finish(true);
       } else {
         left = Math.max(0, left - 4);
         G.streak = 0;
         btn.classList.add('bad');
-        setTimeout(() => btn.classList.remove('bad'), 400);
+        bubble.classList.add('wrong');
+        setTimeout(() => { btn.classList.remove('bad'); bubble.classList.remove('wrong'); }, 400);
         status.textContent = order.need.includes(it) ? 'Sıra yanlış! Siparişi soldan sağa say.' : 'Bu değil! Sabır azaldı.';
         refreshStats();
       }
@@ -185,7 +196,10 @@ export function sceneBox(theme, ts, store) {
       if (busy || !order) return;
       left -= 0.25;
       bar.style.width = `${Math.max(0, (left / PATIENCE) * 100)}%`;
-      bar.classList.toggle('low', left / PATIENCE < 0.3);
+      const frac = Math.max(0, left / PATIENCE);
+      bar.style.background = `hsl(${Math.round(frac * 120)} 65% 45%)`;
+      bar.classList.toggle('low', frac < 0.3);
+      custWrap.classList.toggle('impatient', frac < 0.3 && !custWrap.classList.contains('leave'));
       if (left <= 0) finish(false);
     }, 250);
 

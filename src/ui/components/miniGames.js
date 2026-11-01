@@ -4,6 +4,7 @@ import { h, fromHTML } from '../dom.js';
 import { characterArt } from '../../assets/art.js';
 import { propArt } from '../../assets/props.js';
 import { CONFIG } from '../../config.js';
+import { confetti, flyCoins, floatText } from './effects.js';
 
 export const MINI = {
   cafe: { title: 'Pasta kulesi', how: 'Hareket eden katmanı doğru anda "Bırak" ile üstüne koy. Taşan kısım kesilir, kule yükseldikçe hızlanır.' },
@@ -17,6 +18,24 @@ const rnd = (a, b) => a + Math.floor(Math.random() * (b - a + 1));
 const shuffle = (a) => a.map((v) => [Math.random(), v]).sort((x, y) => x[0] - y[0]).map((x) => x[1]);
 const icon = (it) => fromHTML(propArt(it.id) || characterArt('cafe', 0, '', it.id, 64));
 const ownedOf = (theme, ts, cats) => theme.items.filter((i) => cats.includes(i.category) && ts.owned.includes(i.id));
+
+/** Topu bir sonraki şut için (animasyonsuz) başa al. */
+function resetBall(ball) {
+  ball.classList.remove('fly');
+  ball.classList.add('reset');
+  ball.style.left = '50%';
+  void ball.offsetWidth;
+  ball.classList.remove('reset');
+}
+/** Kaleci atlayışı: 0 sol, 1 orta (zıplar), 2 sağ. */
+const diveClass = (z) => (z === 0 ? 'dive-l' : z === 2 ? 'dive-r' : 'dive-c');
+const clearDive = (k) => k.classList.remove('dive-l', 'dive-r', 'dive-c');
+/** Gol / kurtarış anı: ağ parlar, yazı çıkar, gerekirse konfeti. */
+function shotFx(goalEl, text, good, party) {
+  goalEl.classList.remove('hit'); void goalEl.offsetWidth; goalEl.classList.add('hit');
+  floatText(goalEl, text, good ? 'good' : 'bad');
+  if (party) confetti(14);
+}
 
 let stopFn = null;
 const stopAll = () => { if (stopFn) { stopFn(); stopFn = null; } };
@@ -46,6 +65,8 @@ export function miniGame(theme, ts, idx, back, pay = () => 0, record = () => nul
       const eff = rate === null ? null : record(rate);
       msg.textContent = [t, coins > 0 ? (got ? `+${got} ${theme.currency.name}` : '(bugünkü oyun parası doldu)') : '',
         eff ? `Başarın %${Math.round(rate * 100)}. Günün özeti skoru şu an %${eff.pct}.` : ''].filter(Boolean).join(' ');
+      if (got > 0) { const to = document.getElementById('coin-value'); if (to && area.isConnected) flyCoins(area.getBoundingClientRect(), to, theme.currency.icon, Math.min(8, 2 + Math.round(got / 3))); }
+      if (rate !== null && rate >= 0.7) confetti(26);
       startBtn.textContent = keeperBtn ? 'Şutçu olarak tekrar' : 'Tekrar oyna'; startBtn.hidden = false;
       if (keeperBtn) { keeperBtn.textContent = 'Kaleci olarak tekrar'; keeperBtn.hidden = false; }
     } };
@@ -60,7 +81,14 @@ function tower({ theme, ts, idx, root, msg, area, done }) {
   const colors = ['#F28CB1', '#F6D186', '#8A5A3B', '#F9F4E8', '#E4573D', '#7BC47F'];
   const board = h('div', { class: 'mg-tower' });
   const drop = h('button', { class: 'btn btn-primary mg-drop', type: 'button' }, 'Bırak');
-  area.append(board, drop);
+  const fx = h('div', { class: 'mg-fx' });
+  area.append(h('div', { class: 'mg-wrap' }, board, fx), drop);
+  const bump = (cls) => { board.classList.remove(cls); void board.offsetWidth; board.classList.add(cls); };
+  const chop = (from, to, bottom, color, dir) => {
+    if (to - from < 0.5) return;
+    const c = h('i', { class: 'mg-chop', style: { left: `${from}%`, width: `${to - from}%`, bottom: `${bottom}%`, background: color, '--dx': `${dir * 40}px` } });
+    fx.append(c); setTimeout(() => c.remove(), 800);
+  };
   const items = ownedOf(theme, ts, ['menu']);
   let layers = [{ x: 25, w: 50 }];
   let w = 50, x = 0, dir = 1, over = false;
@@ -78,8 +106,16 @@ function tower({ theme, ts, idx, root, msg, area, done }) {
     if (over) return;
     const last = layers[layers.length - 1];
     const l = Math.max(x, last.x), r = Math.min(x + w, last.x + last.w);
-    if (r - l <= 1) { over = true; draw(); stopAll(); drop.hidden = true; done(`Kule yıkıldı! ${layers.length - 1} kat yaptın.`, (layers.length - 1) * 2, Math.min(1, (layers.length - 1) / 10)); return; }
-    layers.push({ x: l, w: r - l }); w = r - l; x = 0; dir = 1;
+    const rows = Math.min(layers.length, 7);
+    const color = colors[layers.length % colors.length];
+    if (r - l <= 1) { chop(x, x + w, rows * 11, color, x < last.x ? -1 : 1); over = true; draw(); bump('collapse'); stopAll(); drop.hidden = true; done(`Kule yıkıldı! ${layers.length - 1} kat yaptın.`, (layers.length - 1) * 2, Math.min(1, (layers.length - 1) / 10)); return; }
+    const perfect = Math.abs(x - last.x) < 1.5 && Math.abs(w - last.w) < 1.5;
+    if (perfect) { layers.push({ x: last.x, w: last.w }); w = last.w; floatText(board, 'Mükemmel! ✨', 'good'); bump('bump'); }
+    else {
+      chop(x, l, rows * 11, color, -1); chop(r, x + w, rows * 11, color, 1);
+      layers.push({ x: l, w: r - l }); w = r - l; bump('bump');
+    }
+    x = 0; dir = 1;
   });
   draw();
 }
@@ -102,10 +138,13 @@ function penalty(c) {
     busy = true; shots -= 1;
     const g = z !== keeper;
     if (g) goals += 1;
+    zones[z].classList.add('picked');
     ball.style.left = `${z * 33.3 + 16.6}%`; ball.classList.add('fly');
+    k.classList.add(diveClass(keeper));
+    setTimeout(() => shotFx(goal, g ? 'GOL!' : 'KURTARDI!', g, g), 350);
     msg.textContent = g ? 'GOL!' : 'Kaleci kurtardı!';
     setTimeout(() => {
-      ball.classList.remove('fly'); ball.style.left = '50%'; busy = false;
+      resetBall(ball); clearDive(k); zones[z].classList.remove('picked'); busy = false;
       if (shots <= 0) { stopAll(); done(`Maç bitti: ${goals}/10 gol.`, goals * 2, goals / 10); } else upd();
     }, 900);
   }
@@ -132,8 +171,9 @@ function memory({ theme, ts, idx, root, msg, area, done }) {
     if (!first) { first = [c, b]; return; }
     moves += 1; lock = true;
     const [c0, b0] = first; first = null;
-    if (c0.it === c.it) { c0.ok = c.ok = true; found += 1; lock = false; upd(); if (found === pairs.length) done(`Tebrikler! ${moves} hamlede bitirdin.`, Math.max(8, MAX - Math.max(0, moves - pairs.length) * 2), Math.min(1, pairs.length / moves)); return; }
-    setTimeout(() => { c0.open = c.open = false; b0.classList.remove('open'); b.classList.remove('open'); lock = false; upd(); }, 700);
+    if (c0.it === c.it) { c0.ok = c.ok = true; b0.classList.add('matched'); b.classList.add('matched'); setTimeout(() => floatText(b, '✓', 'good'), 250); found += 1; lock = false; upd(); if (found === pairs.length) done(`Tebrikler! ${moves} hamlede bitirdin.`, Math.max(8, MAX - Math.max(0, moves - pairs.length) * 2), Math.min(1, pairs.length / moves)); return; }
+    setTimeout(() => { b0.classList.add('wrong'); b.classList.add('wrong'); }, 350);
+    setTimeout(() => { c0.open = c.open = false; b0.classList.remove('open', 'wrong'); b.classList.remove('open', 'wrong'); lock = false; upd(); }, 800);
   }
   upd();
 }
@@ -147,13 +187,13 @@ function feed({ theme, ts, idx, root, msg, area, done }) {
   const grid = h('div', { class: 'mg-holes' }, ...holes);
   area.append(grid);
   const upd = () => { msg.textContent = `Süre: ${Math.ceil(time)} sn · Beslenen: ${score} · Kaçan: ${miss}`; };
-  holes.forEach((b) => b.addEventListener('click', () => { if (b.classList.contains('up')) { b.classList.remove('up'); b.replaceChildren(); score += 1; upd(); } }));
+  holes.forEach((b) => b.addEventListener('click', () => { if (b.classList.contains('up')) { b.classList.remove('up', 'fed'); void b.offsetWidth; b.classList.add('fed'); setTimeout(() => b.replaceChildren(), 160); floatText(b, '+1 ❤', 'good'); score += 1; upd(); } }));
   const show = () => {
     const free = holes.filter((b) => !b.classList.contains('up'));
     if (!free.length) return;
     const b = free[rnd(0, free.length - 1)];
     b.replaceChildren(icon(pool[rnd(0, pool.length - 1)])); b.classList.add('up');
-    setTimeout(() => { if (b.classList.contains('up')) { b.classList.remove('up'); b.replaceChildren(); miss += 1; } }, Math.max(650, 1400 - idx * 70));
+    setTimeout(() => { if (b.classList.contains('up')) { b.classList.remove('up'); b.classList.remove('fed'); setTimeout(() => b.replaceChildren(), 160); miss += 1; } }, Math.max(650, 1400 - idx * 70));
   };
   every(root, Math.max(420, 900 - idx * 50), () => { if (time > 0) show(); });
   every(root, 250, () => { time -= 0.25; upd(); if (time <= 0) { stopAll(); done(`Süre doldu! ${score} hayvanı besledin.`, score * 2, score + miss ? score / (score + miss) : 0); } });
@@ -171,12 +211,13 @@ function penaltyKeeper({ idx, root, msg, area, done }) {
   const k = h('span', { class: 'mg-keeper' }, fromHTML(characterArt('gk', 2, 'Kaleci', 'ben', 70)));
   const ball = h('span', { class: 'mg-ball' });
   const mark = h('i', { class: 'mg-hint', hidden: true });
-  const zones = [0, 1, 2].map((z) => h('button', { class: 'mg-zone', type: 'button', 'aria-label': ['Sol köşe', 'Orta', 'Sağ köşe'][z], onClick: () => { if (phase === 'aim') { dive = z; k.style.left = `${z * 33.3 + 16.6}%`; } } }));
+  const zones = [0, 1, 2].map((z) => h('button', { class: 'mg-zone', type: 'button', 'aria-label': ['Sol köşe', 'Orta', 'Sağ köşe'][z], onClick: () => { if (phase === 'aim') { dive = z; k.style.left = `${z * 33.3 + 16.6}%`; zones.forEach((q, i) => q.classList.toggle('picked', i === z)); } } }));
   const track = (label) => { const dots = [0, 1, 2].map(() => h('i', { class: 'mg-dot' })); return { dots, el: h('div', { class: 'mg-cue' }, h('span', null, label), h('div', { class: 'mg-track' }, ...dots)) }; };
   const runCue = track('🏃 Koşu yönü');
   const stanceCue = track('🦶 Duruş');
   const light = (c, z) => c.dots.forEach((d, i) => d.classList.toggle('on', z === i));
-  area.append(h('div', { class: 'mg-goal' }, h('div', { class: 'mg-zones' }, ...zones), mark, k), ball, h('div', { class: 'mg-cues' }, runCue.el, stanceCue.el));
+  const goalEl = h('div', { class: 'mg-goal' }, h('div', { class: 'mg-zones' }, ...zones), mark, k);
+  area.append(goalEl, ball, h('div', { class: 'mg-cues' }, runCue.el, stanceCue.el));
   const place = (z) => { k.style.left = `${z * 33.3 + 16.6}%`; };
   const upd = (txt) => { msg.textContent = `${txt} · Kalan şut: ${10 - round} · Kurtarış: ${saves}`; };
   const start = () => {
@@ -186,7 +227,7 @@ function penaltyKeeper({ idx, root, msg, area, done }) {
     mark.style.left = `${cue.gaze * 33.3 + 16.6}%`; mark.hidden = false;
     setTimeout(() => { mark.hidden = true; }, 700);
     light(runCue, null); light(stanceCue, null);
-    ball.style.left = '50%';
+    resetBall(ball); clearDive(k); zones.forEach((q) => q.classList.remove('picked'));
     upd('İpuçlarını izle: bakış, koşu, duruş. Köşeyi seç!');
   };
   every(root, 100, () => {
@@ -201,10 +242,12 @@ function penaltyKeeper({ idx, root, msg, area, done }) {
     const saved = dive === target;
     if (saved) saves += 1;
     ball.style.left = `${target * 33.3 + 16.6}%`; ball.classList.add('fly');
+    k.classList.add(diveClass(dive === null ? 1 : dive));
+    setTimeout(() => shotFx(goalEl, saved ? 'KURTARDIN!' : 'GOL!', saved, saved), 350);
     const mk = (z) => (z === target ? '✓' : '✗');
     msg.textContent = `${saved ? 'KURTARDIN!' : 'Gol oldu!'} Bakış ${mk(cue.gaze)} · Koşu ${mk(cue.run)} · Duruş ${mk(cue.stance)}`;
     setTimeout(() => {
-      ball.classList.remove('fly'); ball.style.left = '50%';
+      resetBall(ball);
       if (round >= 10) { stopAll(); done(`Maç bitti: ${saves}/10 kurtarış.`, saves * 2, saves / 10); } else start();
     }, 1000);
   });
