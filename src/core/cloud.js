@@ -31,7 +31,8 @@ export function errorText(err) {
   if (m.includes('weak') || m.includes('password')) return 'Şifre çok zayıf. Daha uzun bir şifre dene.';
   if (m.includes('cok_fazla') || m.includes('rate') || m.includes('too many') || m.includes('429')) return 'Çok fazla deneme yapıldı. Biraz bekle.';
   const detail = [err && err.error_code, err && (err.msg || err.message), err && err.code].filter((x) => x !== undefined && x !== null && x !== '')
-    .map(String).filter((x, i, a) => a.indexOf(x) === i).join(' · ').slice(0, 100);
+    .map(String).filter((x, i, a) => a.indexOf(x) === i).join(' · ').slice(0, 100)
+    || (() => { try { return JSON.stringify(err).slice(0, 100); } catch { return ''; } })();
   return `Bir sorun oluştu. Sonra tekrar dene.${detail ? ` (${detail})` : ''}`;
 }
 

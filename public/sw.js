@@ -1,6 +1,6 @@
 // Servis çalışanı: uygulama ilk açıldıktan sonra internet olmadan da çalışsın.
 // Strateji: aynı kaynaktan gelen her GET isteği önce önbellekten, yoksa ağdan; ağdan gelen kopya önbelleğe yazılır.
-const CACHE = 'pomodoro-oyun-v1';
+const CACHE = 'pomodoro-oyun-v2';
 const CORE = ['./', './index.html', './manifest.webmanifest', './icons/icon.svg', './icons/icon-192.png', './icons/icon-512.png'];
 
 self.addEventListener('install', (event) => {
@@ -18,6 +18,15 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
   const req = event.request;
   if (req.method !== 'GET' || new URL(req.url).origin !== self.location.origin) return;
+  // Sayfanın kendisi (index.html) önce internetten istenir: güncelleme ilk açılışta gelsin.
+  if (req.mode === 'navigate') {
+    event.respondWith(
+      fetch(req)
+        .then((res) => { if (res.ok) { const copy = res.clone(); caches.open(CACHE).then((c) => c.put(req, copy)); } return res; })
+        .catch(() => caches.match(req).then((hit) => hit || caches.match('./index.html'))),
+    );
+    return;
+  }
   event.respondWith(
     caches.match(req).then((hit) => {
       if (hit) {
