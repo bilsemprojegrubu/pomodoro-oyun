@@ -134,7 +134,7 @@ Kafe, moda ve barınak temaları baştan sona gezildi (kadro, mağaza verisi, el
 - Kayıtta ve Ayarlar > "E-posta ekle / değiştir" ile girilir; `public.contacts` tablosunda saklanır (RLS: herkes yalnız kendininkini görür). Girişte kullanılmaz.
 - Şifre sıfırlama ELLE: kullanıcı kayıtlı adresinden proje adresine yazar, sahibi Supabase panelinden (Authentication > Users) şifreyi sıfırlar. Kayıtlı e-postayı panelde Table Editor > contacts'tan doğrula.
 - Otomatik sıfırlama için ayrı SMTP servisi gerekir (Supabase'in varsayılan gönderimi sadece ekip üyelerine gider). Sonraki adım.
-- `CONFIG.cloud.contactEmail` boş; doldurulursa "Şifremi unuttum" ekranında gösterilir.
+- `CONFIG.cloud.contactEmail` = omeryasarby@gmail.com (geçici); proje adresi olunca değiştirilecek. Doluysa "Şifremi unuttum" ekranında gösterilir.
 
 ## Kaleci modu ipuçları
 - Penaltı ve kalecilikte 10 şut, gol/kurtarış başı 2 altın.
