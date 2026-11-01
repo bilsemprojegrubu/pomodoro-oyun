@@ -5,6 +5,7 @@ import { characterArt } from '../../assets/art.js';
 
 // Kale ağzı (sahnenin yüzdesi): sol 14, sağ 86, üst 20, kale çizgisi 56.
 const G = { l: 14, r: 86, t: 20, b: 56 };
+export const GOAL = G;
 export const zoneX = (z) => G.l + ((G.r - G.l) / 3) * (z + 0.5);
 const SPOT = { x: 50, y: 86 };
 
@@ -44,10 +45,46 @@ export function crowd() {
 }
 
 /**
+ * Kaydırma hareketini şuta çevirir (saf hesap, test edilebilir).
+ * pts: [{x, y, t}] piksel ve ms; W/H: sahne boyutu.
+ * Döner: null (kısa/aşağı kaydırma) ya da { tx, power (0-1), over (çok sert), bend (-1..1) }.
+ */
+export function readSwipe(pts, W, H) {
+  if (!pts || pts.length < 2) return null;
+  const a = pts[0];
+  const b = pts[pts.length - 1];
+  const cx = b.x - a.x;
+  const cy = b.y - a.y;
+  const len = Math.hypot(cx, cy);
+  if (len < H * 0.08 || cy > -H * 0.05) return null; // yukarı doğru yeterince kaydırılmadı
+  // Hız: son 150 ms'deki hareket (sahne yüksekliği / saniye).
+  const tEnd = b.t;
+  let k = pts.length - 1;
+  while (k > 0 && tEnd - pts[k - 1].t <= 150) k -= 1;
+  const s = pts[Math.max(0, k - (k === pts.length - 1 ? 1 : 0))];
+  const dt = Math.max(16, tEnd - s.t);
+  const v = (Math.hypot(b.x - s.x, b.y - s.y) / H) / (dt / 1000);
+  const raw = (v - 1) / 7; // telefonda hızlı fiske ~6-8 sahne yüksekliği/sn
+  const power = Math.max(0, Math.min(1, raw));
+  // Yön: yataydaki sapma kale genişliğine yansır.
+  const tx0 = SPOT.x + (cx / Math.abs(cy)) * 34;
+  // Falso: yolun düz çizgiden en çok saptığı nokta (sağa şişerse +).
+  let dev = 0;
+  for (const q of pts) {
+    const d = (cx * (q.y - a.y) - cy * (q.x - a.x)) / len;
+    if (Math.abs(d) > Math.abs(dev)) dev = d;
+  }
+  const bend = Math.max(-1, Math.min(1, (dev / len) / 0.3));
+  // Falsolu top hedefe doğru az da olsa ters yöne kıvrılır.
+  const tx = tx0 - bend * 4;
+  return { tx, power, over: raw > 1.5, bend: Math.abs(bend) < 0.12 ? 0 : bend, speed: v };
+}
+
+/**
  * Sahneyi kurar. onZone(z): kale bölgesine dokununca.
  * keeperArt / shooterArt: karakter çizimi.
  */
-export function penaltyScene({ onZone, keeperId = 'kaleci', keeperN = 1, shooter = true, labels = ['Sol köşe', 'Orta', 'Sağ köşe'] }) {
+export function penaltyScene({ onZone, onSwipe = null, keeperId = 'kaleci', keeperN = 1, shooter = true, labels = ['Sol köşe', 'Orta', 'Sağ köşe'] }) {
   const root = h('div', { class: 'pk' });
   const stage = h('div', { class: 'pk-stage' });
   const net = h('div', { class: 'pk-net', 'aria-hidden': 'true' });
@@ -99,31 +136,31 @@ export function penaltyScene({ onZone, keeperId = 'kaleci', keeperN = 1, shooter
     },
     /**
      * Şut: koşu, vuruş, top uçuşu, kaleci atlayışı, sonuç.
-     * target: topun gittiği bölge, dive: kalecinin atladığı bölge (null = yerinde kalır), goal: gol mü.
+     * target: bölge (tx/ty verilmezse bölge ortasına gider), tx/ty: hedef nokta (sahne yüzdesi),
+     * bend: falso (-1..1, topun yoldaki yana kavisi), fly: uçuş süresi (ms),
+     * result: 'goal' | 'save' | 'miss' (dışarı/üstten) | 'post' (direk). dive: kalecinin atladığı bölge.
      * Bitince cb() çağrılır.
      */
-    shoot({ target, dive, goal, text, good = goal }, cb) {
+    shoot({ target = 1, tx, ty, bend = 0, fly = 420, dive, goal, result = goal ? 'goal' : 'save', text, good = result === 'goal' }, cb) {
       const W = stage.clientWidth || 300;
       const H = stage.clientHeight || 300;
       const run = shooterEl ? 260 : 0;
       if (shooterEl) {
         animate(shooterEl, [{ transform: 'translate(0,0)' }, { transform: 'translate(55%, -12%)', offset: 0.75 }, { transform: 'translate(70%, -14%) rotate(-12deg)' }], { duration: run, easing: 'ease-in' });
       }
-      // Hedef nokta: bölge ortası, yükseklik rastgele (üst köşe ya da yerden).
-      const tx = zoneX(target) + (target === 1 ? 0 : (Math.random() - 0.5) * 8);
-      const ty = G.t + 6 + Math.random() * (G.b - G.t - 14);
+      if (tx === undefined) tx = zoneX(target) + (target === 1 ? 0 : (Math.random() - 0.5) * 8);
+      if (ty === undefined) ty = G.t + 6 + Math.random() * (G.b - G.t - 14);
       const dx = ((tx - SPOT.x) / 100) * W;
       const dy = ((ty - SPOT.y) / 100) * H;
-      const curve = (target === 0 ? -1 : target === 2 ? 1 : 0) * W * 0.06 + (Math.random() - 0.5) * W * 0.04;
-      const fly = 420;
-      animate(ball, [
-        { transform: 'translate(-50%, -50%) translate(0px, 0px) scale(1) rotate(0deg)' },
-        { transform: `translate(-50%, -50%) translate(${dx * 0.45 - curve}px, ${dy * 0.55 - H * 0.08}px) scale(0.72) rotate(300deg)`, offset: 0.5 },
-        { transform: `translate(-50%, -50%) translate(${dx}px, ${dy}px) scale(0.48) rotate(620deg)` },
-      ], { duration: fly, delay: run, easing: 'cubic-bezier(.25,.6,.4,1)' });
+      // Falso: top yolda yana açılıp hedefe geri kıvrılır (bend > 0 sağa).
+      const side = bend * W * 0.28;
+      const at = (k, sc, rot) => `translate(-50%, -50%) translate(${dx * k + side * Math.sin(k * Math.PI)}px, ${dy * k - H * 0.07 * Math.sin(k * Math.PI)}px) scale(${sc}) rotate(${rot}deg)`;
+      const end = at(1, 0.48, 620);
+      animate(ball, [0, 0.25, 0.5, 0.75, 1].map((k) => ({ transform: at(k, 1 - k * 0.52, k * 620), offset: k })), { duration: fly, delay: run, easing: 'cubic-bezier(.25,.6,.4,1)' });
       animate(shadow, [
         { transform: 'translate(-50%, -50%) translate(0px, 0px) scale(1)', opacity: 0.45 },
-        { transform: `translate(-50%, -50%) translate(${dx}px, ${((G.b - SPOT.y) / 100) * H}px) scale(0.45)`, opacity: 0.12 },
+        { transform: `translate(-50%, -50%) translate(${dx * 0.5 + side}px, ${((G.b - SPOT.y) / 200) * H}px) scale(0.7)`, opacity: 0.3, offset: 0.5 },
+        { transform: `translate(-50%, -50%) translate(${dx}px, ${((Math.max(ty, G.b) - SPOT.y) / 100) * H}px) scale(0.45)`, opacity: 0.12 },
       ], { duration: fly, delay: run, easing: 'cubic-bezier(.25,.6,.4,1)' });
       // Kaleci şut anında atlar.
       setTimeout(() => {
@@ -132,11 +169,12 @@ export function penaltyScene({ onZone, keeperId = 'kaleci', keeperN = 1, shooter
         keeper.style.left = `${zoneX(dive) + (dive === 0 ? 4 : dive === 2 ? -4 : 0)}%`;
         keeper.classList.add(dive === 0 ? 'dive-l' : dive === 2 ? 'dive-r' : 'dive-c');
       }, motionOn() ? run + 60 : 0);
-      // Sonuç: gol ise top fileye gömülüp düşer, kurtarışta sekip dışarı çıkar.
+      // Sonuç: gol ise top fileye gömülüp düşer, kurtarışta sekip dışarı çıkar, autta uzaklaşır.
       setTimeout(() => {
-        if (goal) {
+        const away = tx < 50 ? -1 : 1;
+        if (result === 'goal') {
           animate(ball, [
-            { transform: `translate(-50%, -50%) translate(${dx}px, ${dy}px) scale(0.48) rotate(620deg)` },
+            { transform: end },
             { transform: `translate(-50%, -50%) translate(${dx * 1.04}px, ${dy - H * 0.03}px) scale(0.42) rotate(660deg)`, offset: 0.25 },
             { transform: `translate(-50%, -50%) translate(${dx * 1.04}px, ${((G.b - 3 - SPOT.y) / 100) * H}px) scale(0.42) rotate(700deg)` },
           ], { duration: 520, easing: 'ease-in' });
@@ -145,22 +183,69 @@ export function penaltyScene({ onZone, keeperId = 'kaleci', keeperN = 1, shooter
           restart(net, 'hit');
           restart(stage, 'shake');
           restart(stage, 'cheer');
-        } else {
-          const side = target === 0 ? -1 : target === 2 ? 1 : (Math.random() < 0.5 ? -1 : 1);
+        } else if (result === 'miss') {
+          // Dışarı ya da üstten: top küçülerek tribüne doğru gider.
           animate(ball, [
-            { transform: `translate(-50%, -50%) translate(${dx}px, ${dy}px) scale(0.48) rotate(620deg)` },
-            { transform: `translate(-50%, -50%) translate(${dx + side * W * 0.22}px, ${dy + H * 0.05}px) scale(0.62) rotate(420deg)`, offset: 0.45 },
-            { transform: `translate(-50%, -50%) translate(${dx + side * W * 0.34}px, ${dy + H * 0.32}px) scale(0.75) rotate(300deg)`, opacity: 0 },
+            { transform: end, opacity: 1 },
+            { transform: `translate(-50%, -50%) translate(${dx + away * W * 0.08}px, ${dy - H * 0.16}px) scale(0.3) rotate(800deg)`, opacity: 0 },
+          ], { duration: 500, easing: 'ease-out' });
+        } else if (result === 'post') {
+          // Direğe çarpar, geri seker.
+          restart(stage, 'shake');
+          animate(ball, [
+            { transform: end },
+            { transform: `translate(-50%, -50%) translate(${dx - away * W * 0.12}px, ${dy + H * 0.12}px) scale(0.6) rotate(500deg)`, offset: 0.5 },
+            { transform: `translate(-50%, -50%) translate(${dx - away * W * 0.2}px, ${dy + H * 0.34}px) scale(0.78) rotate(400deg)`, opacity: 0 },
+          ], { duration: 650, easing: 'ease-out' });
+        } else {
+          const sd = target === 0 ? -1 : target === 2 ? 1 : (Math.random() < 0.5 ? -1 : 1);
+          animate(ball, [
+            { transform: end },
+            { transform: `translate(-50%, -50%) translate(${dx + sd * W * 0.22}px, ${dy + H * 0.05}px) scale(0.62) rotate(420deg)`, offset: 0.45 },
+            { transform: `translate(-50%, -50%) translate(${dx + sd * W * 0.34}px, ${dy + H * 0.32}px) scale(0.75) rotate(300deg)`, opacity: 0 },
           ], { duration: 620, easing: 'ease-out' });
         }
         restart(flash, good ? 'good' : 'bad');
         banner.textContent = text;
-        banner.className = `pk-banner ${good ? 'good' : 'bad'}`;
+        banner.className = `pk-banner ${good ? 'good' : 'bad'}${text.length > 9 ? ' long' : ''}`;
         restart(banner, 'show');
       }, motionOn() ? run + fly : 0);
       setTimeout(cb, motionOn() ? run + fly + 1100 : 600);
     },
   };
+
+  // ---- Kaydırarak şut (onSwipe verilirse) ----
+  if (onSwipe) {
+    stage.classList.add('swipe');
+    const trail = fromHTML('<svg class="pk-trail" aria-hidden="true"><polyline points="" /></svg>');
+    stage.append(trail);
+    const line = trail.querySelector('polyline');
+    let pts = null;
+    const pos = (e) => { const r = stage.getBoundingClientRect(); return { x: e.clientX - r.left, y: e.clientY - r.top, t: e.timeStamp || performance.now() }; };
+    stage.addEventListener('pointerdown', (e) => {
+      if (!e.isPrimary) return;
+      pts = [pos(e)];
+      trail.setAttribute('viewBox', `0 0 ${stage.clientWidth} ${stage.clientHeight}`);
+      trail.classList.remove('fade');
+      line.setAttribute('points', '');
+    });
+    stage.addEventListener('pointermove', (e) => {
+      if (!pts) return;
+      pts.push(pos(e));
+      if (pts.length > 80) pts.splice(1, 1);
+      line.setAttribute('points', pts.map((q) => `${q.x},${q.y}`).join(' '));
+    });
+    const end = (e) => {
+      if (!pts) return;
+      pts.push(pos(e));
+      const info = readSwipe(pts, stage.clientWidth || 300, stage.clientHeight || 300);
+      pts = null;
+      restart(trail, 'fade');
+      if (info) { api.swiped = performance.now(); onSwipe(info); }
+    };
+    stage.addEventListener('pointerup', end);
+    stage.addEventListener('pointercancel', () => { pts = null; restart(trail, 'fade'); });
+  }
   api.reset();
   return api;
 }

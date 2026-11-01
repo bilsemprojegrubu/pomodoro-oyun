@@ -5,12 +5,13 @@ import { characterArt } from '../../assets/art.js';
 import { propArt } from '../../assets/props.js';
 import { CONFIG } from '../../config.js';
 import { confetti, flyCoins, floatText, countUp, burst } from './effects.js';
-import { penaltyScene } from './penaltyScene.js';
+import { penaltyScene, zoneX } from './penaltyScene.js';
+import { shotOutcome, kmh } from '../../core/penalty.js';
 import { keeperScene } from './keeperScene.js';
 
 export const MINI = {
   cafe: { title: 'Pasta kulesi', how: 'Hareket eden katmanı doğru anda "Bırak" ile üstüne koy. Taşan kısım kesilir, kule yükseldikçe hızlanır.' },
-  football: { title: 'Penaltı atışları', how: '10 şutun var. Kaleci hareket ediyor: o an durmadığı köşeyi seç ve vur! (Kaleci modunda üç ipucu vardır: bakış, koşu yönü, duruş.)' },
+  football: { title: 'Penaltı atışları', how: '10 şutun var. Topu parmağınla kaleye doğru kaydır: ne kadar hızlı kaydırırsan şut o kadar sert olur, kavis çizersen top falso alır. Çok sert vurursan üstten çıkar! (Kaleci modunda üç ipucu vardır: bakış, koşu yönü, duruş.)' },
   fashion: { title: 'Kombin eşleştirme', how: 'Kartları çevir, aynı olan çiftleri bul. Az hamlede bitir!' },
   shelter: { title: 'Hayvanları besle', how: '30 saniyen var. Yuvalardan çıkan hayvanlara dokunarak onları besle, kaçırma!' },
 };
@@ -137,32 +138,39 @@ function tower({ theme, ts, idx, root, msg, area, done }) {
   draw();
 }
 
-// ---- Futbol: penaltı ----
+// ---- Futbol: penaltı (topu kaydırarak vur; hız = güç, kavis = falso) ----
 function penalty(c) {
   if (c.mode === 'keep') return penaltyKeeper(c);
   const { idx, root, msg, area, done } = c;
   let keeper = 1, shots = 10, goals = 0, busy = false;
-  const sc = penaltyScene({ onZone: (z) => shoot(z) });
+  const sc = penaltyScene({
+    onSwipe: (s) => shoot(s),
+    // Dokunarak da vurulabilir (orta güç, falsosuz); kaydırmadan hemen sonra gelen dokunuş sayılmaz.
+    onZone: (z) => { if (!sc.swiped || performance.now() - sc.swiped > 400) shoot({ tx: zoneX(z), power: 0.5, over: false, bend: 0 }); },
+  });
   area.append(sc.el);
-  const upd = () => { msg.textContent = `Kalan şut: ${shots} · Gol: ${goals} — Kalecinin olmadığı köşeye dokun!`; };
+  const upd = () => { msg.textContent = `Kalan şut: ${shots} · Gol: ${goals} — Topu kaleye doğru kaydır! Hızlı kaydır = sert şut, kavisli kaydır = falso.`; };
   every(root, Math.max(280, 750 - idx * 55), () => { if (!busy) { keeper = rnd(0, 2); sc.place(keeper); } });
-  function shoot(z) {
+  function shoot(s) {
     if (busy || shots <= 0) return;
     busy = true;
     const n = 10 - shots;
     shots -= 1;
-    const g = z !== keeper;
+    const o = shotOutcome({ tx: s.tx, power: s.power, over: s.over, keeper });
+    const g = o.result === 'goal';
     if (g) goals += 1;
-    sc.pick(z);
-    msg.textContent = 'Şut!';
-    sc.shoot({ target: z, dive: keeper, goal: g, text: g ? 'GOOOL!' : 'KURTARDI!' }, () => {
+    if (o.result === 'goal' || o.result === 'save') sc.pick(o.zone);
+    const info = `${kmh(s.power)} km/s${s.bend ? ' · falsolu' : ''}`;
+    msg.textContent = `Şut! ${info}`;
+    sc.shoot({ target: o.zone, tx: s.tx, ty: o.ty, bend: s.bend, fly: Math.round(640 - s.power * 320), dive: o.dive, result: o.result, text: o.text }, () => {
       if (!root.isConnected) return;
       sc.mark(n, g);
       if (g) confetti(12);
       sc.reset(); busy = false;
       if (shots <= 0) { stopAll(); done(`Maç bitti: ${goals}/10 gol.`, goals * 2, goals / 10); } else upd();
     });
-    setTimeout(() => { if (root.isConnected && busy) msg.textContent = g ? 'GOL! Harika vuruş!' : 'Kaleci kurtardı!'; }, motionOn() ? 700 : 0);
+    const say = { goal: 'GOL! Harika vuruş!', save: 'Kaleci kurtardı!', miss: 'Dışarı gitti!', post: 'Direğe çarptı!' }[o.result];
+    setTimeout(() => { if (root.isConnected && busy) msg.textContent = `${say} (${info})`; }, motionOn() ? 800 : 0);
   }
   sc.place(keeper); upd();
 }
