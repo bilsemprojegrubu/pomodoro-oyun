@@ -120,3 +120,12 @@ Kafe, moda ve barınak temaları baştan sona gezildi (kadro, mağaza verisi, el
 - Kullanıcı adı/şifre yok, sunucu yok. Ayarlar > "Kurtarma kodu al" ile kod alınır, diğer cihazda "Kodla yükle".
 - Kod = `PO1.` + gzip + base64url. Kodu bilen herkes kaydı yükleyebilir: gizli tutulmalı.
 - Otomatik senkron yok; kod elle taşınır.
+
+## Bulut hesabı (Supabase)
+- Giriş: kullanıcı adı + kullanıcının kendi şifresi (en az 8). E-posta istenmiyor; arka planda `kullanıcıadı@kullanici.pomodoro-oyun.app` sahte adresi kullanılır, hiç posta gitmez.
+- Supabase'de "Confirm email" KAPALI olmalı. Tablo: `public.saves(user_id, data jsonb, updated_at)`, RLS açık, herkes sadece kendi satırını okur/yazar.
+- Kütüphane yok: `src/core/cloud.js` doğrudan REST çağırır. `cloudSync.js`: açılışta uzlaşma, 30 sn'de bir ve sayfa gizlenirken gönderim.
+- Çakışma kuralı: başka cihaz daha yeni kayıt yazdıysa o yüklenir; bu cihazda gönderilmemiş değişiklik de varsa kullanıcıya sorulur.
+- Şifre sıfırlama YOK (e-posta toplanmıyor). İsteğe bağlı e-posta + otomatik sıfırlama sonraki adım; ayrı kurulum gerektirir.
+- Altın/maç hesabı hâlâ telefonda; hile mümkün (sıralama tablosu yapılırsa sunucuya taşınmalı).
+- Anahtar `src/config.js` içinde, publishable türü, herkese açık olması güvenli.

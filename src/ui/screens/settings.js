@@ -8,6 +8,8 @@ import { openModal, confirmDialog } from '../components/modal.js';
 import { toast } from '../components/toast.js';
 import { ask as askNotify, supported as notifySupported } from '../notify.js';
 import { themeState } from '../../core/economy.js';
+import { cleanUsername, errorText } from '../../core/cloud.js';
+import { hasProgress, parseCloud } from '../../core/cloudSync.js';
 import { makeCode, readCode } from '../../core/recoveryCode.js';
 import { defaultState } from '../../core/storage.js';
 import { hashText, redeemHash, applyAutoLineup } from '../../core/testcode.js';
@@ -158,6 +160,88 @@ export function mount(root, ctx) {
     toast(result.ok ? t('testCode.ok', { n: result.coins }) : t('testCode.bad'));
   }
 
+  // ---- Bulut hesabı ----
+  function applyRemote(next, at) {
+    store.replace(next);
+    ctx.cloud.markSynced(next, at);
+    ctx.applySettings();
+    ctx.applyTheme();
+  }
+
+  async function afterSignIn() {
+    const remote = await ctx.cloud.pull();
+    if (!remote) { await ctx.cloud.push(store.get()); toast('Giriş yapıldı. İlerlemen hesabına kaydedildi.'); return; }
+    const next = parseCloud(store.storage, remote.data);
+    if (!next) { await ctx.cloud.push(store.get()); return; }
+    if (!hasProgress(store.get())) { applyRemote(next, remote.updatedAt); toast('Giriş yapıldı. Hesabındaki ilerleme yüklendi.'); return; }
+    const useRemote = await confirmDialog({
+      title: 'Hangi ilerleme kalsın?',
+      text: 'Hesabında kayıtlı bir ilerleme var, bu cihazda da ilerleme var. Biri diğerinin yerine geçecek.',
+      yes: 'Hesaptakini yükle', no: 'Bu cihazdakini kullan', danger: true,
+    });
+    if (useRemote) { applyRemote(next, remote.updatedAt); toast('Hesabındaki ilerleme yüklendi.'); } else { await ctx.cloud.push(store.get()); toast('Bu cihazdaki ilerleme hesabına yazıldı.'); }
+  }
+
+  function openAuth(signup) {
+    const user = h('input', { class: 'input', id: 'au-user', autocomplete: 'username', autocapitalize: 'off', spellcheck: 'false', maxlength: 20, placeholder: 'kullanıcı adı' });
+    const pw = h('input', { class: 'input', id: 'au-pw', type: 'password', autocomplete: signup ? 'new-password' : 'current-password', placeholder: 'şifre' });
+    const pw2 = signup ? h('input', { class: 'input', id: 'au-pw2', type: 'password', autocomplete: 'new-password', placeholder: 'şifre (tekrar)' }) : null;
+    const msg = h('p', { class: 'small', role: 'alert' });
+    openModal({
+      title: signup ? 'Hesap oluştur' : 'Giriş yap',
+      body: [
+        h('div', { class: 'field' }, h('label', { for: 'au-user' }, 'Kullanıcı adı'), user, h('p', { class: 'small muted' }, '3-20 karakter: harf (a-z, Türkçe harf olmadan), rakam ve alt çizgi.')),
+        h('div', { class: 'field' }, h('label', { for: 'au-pw' }, 'Şifre'), pw),
+        pw2 ? h('div', { class: 'field' }, h('label', { for: 'au-pw2' }, 'Şifre (tekrar)'), pw2) : null,
+        signup ? h('p', { class: 'card note small' }, 'Önemli: Şifreni unutursan hesabını geri alamayız. Şifreni bir yere not et. Gerçek adını ve e-postanı istemiyoruz. Kaydın sadece senin hesabında saklanır.') : null,
+        msg,
+      ],
+      actions: [
+        { label: t('common.cancel') },
+        { label: signup ? 'Oluştur' : 'Giriş yap', kind: 'primary', onClick: async () => {
+          const name = cleanUsername(user.value);
+          if (!name) { msg.textContent = 'Kullanıcı adı geçersiz.'; return false; }
+          if (pw.value.length < 8) { msg.textContent = 'Şifre en az 8 karakter olmalı.'; return false; }
+          if (signup && pw.value !== pw2.value) { msg.textContent = 'İki şifre aynı değil.'; return false; }
+          msg.textContent = 'Bekle…';
+          try {
+            if (signup) { await ctx.cloud.signUp(name, pw.value); await ctx.cloud.push(store.get()); toast('Hesabın oluşturuldu. İlerlemen kaydedildi.'); } else { await ctx.cloud.signIn(name, pw.value); await afterSignIn(); }
+          } catch (e) { msg.textContent = errorText(e); return false; }
+          render();
+        } },
+      ],
+    });
+  }
+
+  async function syncNow() {
+    try { await ctx.cloud.push(store.get()); toast('Eşitlendi'); } catch (e) { toast(errorText(e)); }
+    render();
+  }
+
+  async function signOut() {
+    const ok = await confirmDialog({ title: 'Çıkış yapılsın mı?', text: 'Bu cihazdaki ilerleme silinmez. Sadece hesap bağlantısı kapanır.', yes: 'Çıkış yap', no: t('common.cancel') });
+    if (!ok) return;
+    try { if (ctx.pushNow) await ctx.pushNow(); } catch { /* sessizce geç */ }
+    ctx.cloud.signOut();
+    render();
+  }
+
+  function accountSection() {
+    const c = ctx.cloud;
+    return section('Hesap',
+      c.signedIn
+        ? [h('p', null, `Giriş yapıldı: ${c.user}`),
+          h('p', { class: 'small muted' }, c.syncedAt ? `Son eşitleme: ${new Date(c.syncedAt).toLocaleString('tr-TR')}` : 'Henüz eşitlenmedi.'),
+          h('p', { class: 'small muted' }, 'İlerlemen otomatik olarak hesabına kaydedilir. Başka cihazda aynı kullanıcı adı ve şifreyle giriş yap.'),
+          h('div', { class: 'row-wrap' },
+            h('button', { type: 'button', class: 'btn btn-outline', onClick: syncNow }, 'Şimdi eşitle'),
+            h('button', { type: 'button', class: 'btn btn-outline', onClick: signOut }, 'Çıkış yap'))]
+        : [h('p', { class: 'small muted' }, 'Hesap açarsan ilerlemen başka cihazlarda da kaldığın yerden devam eder. Hesap açmak zorunlu değil.'),
+          h('div', { class: 'row-wrap' },
+            h('button', { type: 'button', class: 'btn btn-primary', onClick: () => openAuth(false) }, 'Giriş yap'),
+            h('button', { type: 'button', class: 'btn btn-outline', onClick: () => openAuth(true) }, 'Hesap oluştur'))]);
+  }
+
   function render() {
     const s = store.get();
     const st = s.settings;
@@ -197,6 +281,7 @@ export function mount(root, ctx) {
           });
           if (v) toast(t('testCode.autoOn'));
         })),
+      accountSection(),
       section(t('settings.data'),
         h('p', { class: 'small muted' }, t('settings.dataDesc')),
         h('div', { class: 'row-wrap' },

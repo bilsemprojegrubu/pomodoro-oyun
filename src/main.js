@@ -25,6 +25,9 @@ import { renderTopbar } from './ui/components/topbar.js';
 import { enableSwipe } from './ui/components/swipe.js';
 import { renderNav, TABS } from './ui/components/nav.js';
 import { toast } from './ui/components/toast.js';
+import { confirmDialog } from './ui/components/modal.js';
+import { createCloud } from './core/cloud.js';
+import { startupSync, startAutoPush } from './core/cloudSync.js';
 import { showCompletion, showInterrupted } from './ui/components/celebration.js';
 import { showWeekly } from './ui/screens/weekly.js';
 
@@ -44,6 +47,7 @@ const TAB_OF = { research: 'stats' };
 const backend = createBackend();
 const storage = createStorage(backend);
 const store = createStore(storage);
+const cloud = createCloud({ backend });
 
 let tabId = Math.random().toString(36).slice(2, 10);
 try {
@@ -69,6 +73,7 @@ let screenName = null;
 /** Ekranlara verilen ortak bağlam. */
 const ctx = {
   store,
+  cloud,
   themes: THEMES,
   get state() { return store.get(); },
   get theme() { return ctx.isControl() ? null : THEMES[store.get().profile.theme] || null; },
@@ -306,6 +311,15 @@ try { if (navigator.storage && navigator.storage.persist) navigator.storage.pers
 setTimeout(() => {
   checkWeekly();
 }, 600);
+
+// Bulut hesabı varsa: açılışta sunucuyla uzlaş, sonra değişiklikleri düzenli gönder.
+startupSync({
+  cloud,
+  store,
+  ask: () => confirmDialog({ title: 'Başka cihazda ilerleme var', text: 'Hesabında daha yeni bir kayıt var, bu cihazda da gönderilmemiş değişiklik var. Hesaptaki kaydı yükleyelim mi? (Bu cihazdaki gönderilmemiş değişiklikler silinir.)', yes: 'Hesaptakini yükle', no: 'Bu cihazdakini koru' }),
+}).then((r) => {
+  if (r === 'applied') { applySettings(); applyTheme(); toast('Hesabındaki ilerleme yüklendi'); }
+}).finally(() => { ctx.pushNow = startAutoPush({ cloud, store }); });
 
 if (!backend.persistent) toast(t('settings.noStorage'), 6000);
 

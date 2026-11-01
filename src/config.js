@@ -74,6 +74,14 @@ export const CONFIG = {
     legend: { id: 'legend', price: 4000, minLevel: 4, icon: '💎' },
   },
 
+  // Bulut hesabı (Supabase). Anahtar herkese açık türde (publishable); verileri satır güvenliği korur.
+  cloud: {
+    url: 'https://ysiuevsvkhdvbbnvgack.supabase.co',
+    key: 'sb_publishable_9MQhJyVEc5a6U9mrLnyTAg_Sh4gKn7r',
+    emailDomain: 'kullanici.pomodoro-oyun.app',
+    syncEverySec: 30,
+  },
+
   goals: [2, 4, 6, 8],
   defaultDailyGoal: 4,
 
