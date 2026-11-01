@@ -11,7 +11,7 @@ import { keeperScene } from './keeperScene.js';
 
 export const MINI = {
   cafe: { title: 'Pasta kulesi', how: 'Hareket eden katmanı doğru anda "Bırak" ile üstüne koy. Taşan kısım kesilir, kule yükseldikçe hızlanır.' },
-  football: { title: 'Penaltı atışları', how: '10 şutun var. Topu parmağınla kaleye doğru kaydır: ne kadar hızlı kaydırırsan şut o kadar sert olur, kavis çizersen top falso alır. Çok sert vurursan üstten çıkar! (Kaleci modunda üç ipucu vardır: bakış, koşu yönü, duruş.)' },
+  football: { title: 'Penaltı atışları', how: '10 şutun var. Topu parmağınla kaleye doğru kaydır: ne kadar hızlı kaydırırsan şut o kadar sert olur, kavis çizersen top falso alır. Çok sert vurursan üstten çıkar! (Kaleci modunda rakip de kaydırarak vurur: şutu hızlı ya da falsolu olabilir; üç ipucu vardır: bakış, koşu yönü, duruş. Yavaş şutlara yandaki köşeden de yetişebilirsin.)' },
   fashion: { title: 'Kombin eşleştirme', how: 'Kartları çevir, aynı olan çiftleri bul. Az hamlede bitir!' },
   shelter: { title: 'Hayvanları besle', how: '30 saniyen var. Yuvalardan çıkan hayvanlara dokunarak onları besle, kaçırma!' },
 };
@@ -264,16 +264,21 @@ function penaltyKeeper({ idx, root, msg, area, done }) {
     if (t === Math.round(AIM * 0.4 / 100) * 100 + 800) light(stanceCue, null);
     if (t < AIM) return;
     phase = 'shot';
-    const saved = dive === target;
+    // Rakip de kaydırarak vuruyor: şutun gücü (hız) ve falsosu rastgele. Yavaş şutta kaleci yandaki köşeden de yetişebilir.
+    const power = Math.min(1, 0.12 + Math.random() * 0.88);
+    const bend = Math.random() < 0.45 ? (Math.random() < 0.5 ? -1 : 1) * (0.3 + Math.random() * 0.6) : 0;
+    const reach = power < 0.35 && dive !== null && Math.abs(dive - target) === 1;
+    const saved = dive === target || reach;
     if (saved) saves += 1;
+    const info = `${kmh(power)} km/s${bend ? ' · falsolu' : ''}`;
     const n = round - 1;
     const mk = (z) => (z === target ? '✓' : '✗');
-    sc.shoot({ target, dive, goal: !saved, good: saved, text: saved ? 'KURTARDIN!' : 'GOL OLDU' }, () => {
+    sc.shoot({ target, dive, bend, fly: Math.round(700 - power * 330), goal: !saved, good: saved, text: saved ? 'KURTARDIN!' : 'GOL OLDU' }, () => {
       if (!root.isConnected) return;
       sc.mark(n, saved);
       if (round >= 10) { stopAll(); done(`Maç bitti: ${saves}/10 kurtarış.`, saves * 2, saves / 10); } else start();
     });
-    setTimeout(() => { if (root.isConnected && phase === 'shot') { if (saved) confetti(12); msg.textContent = `${saved ? 'KURTARDIN!' : 'Gol oldu!'} Bakış ${mk(cue.gaze)} · Koşu ${mk(cue.run)} · Duruş ${mk(cue.stance)}`; } }, motionOn() ? 700 : 0);
+    setTimeout(() => { if (root.isConnected && phase === 'shot') { if (saved) confetti(12); msg.textContent = `${saved ? 'KURTARDIN!' : 'Gol oldu!'} ${info} · Bakış ${mk(cue.gaze)} · Koşu ${mk(cue.run)} · Duruş ${mk(cue.stance)}`; } }, motionOn() ? 700 : 0);
   });
   start();
 }

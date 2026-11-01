@@ -103,7 +103,7 @@ export function keeperScene({ onZone, labels = ['Sol köşe', 'Orta', 'Sağ kö�
       api.place(1);
     },
     /** Şut: rakip koşar ve vurur, top sana doğru büyüyerek gelir; dive = senin seçtiğin köşe (null: yerinde). */
-    shoot({ target, dive, goal, good = !goal, text }, cb) {
+    shoot({ target, dive, goal, good = !goal, text, bend = 0, fly = 460 }, cb) {
       const W = stage.clientWidth || 300;
       const H = stage.clientHeight || 300;
       const run = 340;
@@ -117,10 +117,10 @@ export function keeperScene({ onZone, labels = ['Sol köşe', 'Orta', 'Sağ kö�
       const ty = goal ? 26 + Math.random() * 26 : 38;
       const dx = ((tx - SPOT.x) / 100) * W;
       const dy = ((ty - SPOT.y) / 100) * H;
-      const fly = 460;
+      const side0 = bend * W * 0.22;
       animate(ball, [
         { transform: 'translate(-50%, -50%) translate(0px, 0px) scale(1) rotate(0deg)' },
-        { transform: `translate(-50%, -50%) translate(${dx * 0.4}px, ${dy * 0.5 - H * 0.04}px) scale(1.8) rotate(240deg)`, offset: 0.5 },
+        { transform: `translate(-50%, -50%) translate(${dx * 0.4 + side0}px, ${dy * 0.5 - H * 0.04}px) scale(1.8) rotate(240deg)`, offset: 0.5 },
         { transform: `translate(-50%, -50%) translate(${dx}px, ${dy}px) scale(4.2) rotate(520deg)` },
       ], { duration: fly, delay: run, easing: 'cubic-bezier(.5,0,.9,.6)' });
       animate(shadow, [
